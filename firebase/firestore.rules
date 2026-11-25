@@ -44,6 +44,7 @@ service cloud.firestore {
     match /storeCats/{id}  { allow read: if signedIn(); allow write: if isAdmin(); }
     match /items/{id}      { allow read: if signedIn(); allow write: if isAdmin(); }
     match /links/{id}      { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /config/sets     { allow read: if true; allow write: if isAdmin(); }
     match /config/{id}     { allow read: if signedIn(); allow write: if isAdmin(); }
     match /contestP/{id}   { allow read: if signedIn(); allow write: if isAdmin(); }
 

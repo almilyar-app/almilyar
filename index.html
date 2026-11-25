@@ -797,12 +797,13 @@ function rauth(){var reg=AM==='up',rf=(new URLSearchParams(location.search).get(
  +(reg?'<input id="an" placeholder="الاسم الكامل" autocomplete="name">':'')
  +'<input id="ap" type="tel" inputmode="numeric" dir="ltr" placeholder="رقم الهاتف" style="text-align:left" autocomplete="tel">'
  +'<input id="aw" type="password" placeholder="كلمة المرور" autocomplete="'+(reg?'new-password':'current-password')+'">'
- +(reg?'<input id="aw2" type="password" placeholder="تأكيد كلمة المرور" autocomplete="new-password"><input id="ar" dir="ltr" placeholder="كود الإحالة (اختياري)" value="'+rf+'" style="text-align:left">':'')
+ +(reg?'<input id="aw2" type="password" placeholder="تأكيد كلمة المرور" autocomplete="new-password">'+(REFON?'<input id="ar" dir="ltr" placeholder="كود الإحالة (اختياري)" value="'+rf+'" style="text-align:left">':''):'')
  +'<button class="btn" data-a="asubmit" id="asb">'+(reg?'إنشاء الحساب':'دخول')+'</button>'}
 A.amode=function(v){AM=v;rauth()};
+getDoc(doc(db,'config','sets')).then(function(s){var d=s.data()||{};REFON=d.refOn===false?0:1;if($('auth')&&$('auth').style.display!=='none'&&!($('ap')&&$('ap').value))rauth()}).catch(function(){});
 A.asubmit=async function(){if(busy)return;var p=($('ap').value||'').replace(/\D/g,''),w=$('aw').value,reg=AM==='up';
  if(!/^07\d{9}$/.test(p))return toast('اكتب رقم هاتف صحيح من 11 رقم يبدأ بـ 07');if(w.length<6)return toast('كلمة المرور 6 أحرف على الأقل');
- var n='',rf='';if(reg){n=($('an').value||'').trim();if(n.length<3)return toast('اكتب الاسم الكامل');if(w!==$('aw2').value)return toast('تأكيد كلمة المرور لا يطابق');rf=($('ar').value||'').trim().toUpperCase()}
+ var n='',rf='';if(reg){n=($('an').value||'').trim();if(n.length<3)return toast('اكتب الاسم الكامل');if(w!==$('aw2').value)return toast('تأكيد كلمة المرور لا يطابق');rf=REFON&&$('ar')?($('ar').value||'').trim().toUpperCase():''}
  busy=true;$('asb').textContent='جاري...';
  try{
   if(reg){var c=await createUserWithEmailAndPassword(auth,em(p),w),code='MIL'+Math.floor(1000+Math.random()*9000)+String(c.user.uid).replace(/[^A-Z0-9]/gi,'').slice(0,2).toUpperCase();
