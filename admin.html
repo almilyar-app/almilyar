@@ -445,6 +445,25 @@ A.sinv=function(){var n=Math.max(0,Math.round(+$('s_inv').value||0));save(functi
 A.invsync=function(){var us={};SUBS.forEach(function(s){us[s.uid]=1});var ids=Object.keys(us);save(async function(){for(var i=0;i<ids.length;i+=400){var b=writeBatch(db);ids.slice(i,i+400).forEach(function(u){b.set(doc(db,'investors',u),{uid:u,ts:new Date()},{merge:true})});if(i+400>=ids.length)b.set(doc(db,'config','stats'),{n:ids.length});await b.commit()}if(!ids.length)await setDoc(doc(db,'config','stats'),{n:0})},'تم احتساب '+ids.length+' مستثمر')};
 var _rs3=rSet;rSet=function(){_rs3();var mx=SET.maxInv||0;$('p_set').insertAdjacentHTML('afterbegin','<div class="h3">حد المستثمرين</div><div class="card"><div class="sub" style="margin-bottom:8px;line-height:1.8">المستثمرون الحاليون: <b>'+(SET.invN||0)+'</b>'+(mx?' من '+mx:' (بدون حد)')+'<br>عند اكتمال العدد ما يقدر مستخدم جديد يشتري أول باقة له. اللي استثمر قبل يكدر يكمل ويشتري باقات ثانية.</div><label class="fl">الحد الأقصى لعدد المستثمرين (0 = بدون حد)</label><input id="s_inv" type="number" min="0" value="'+mx+'"><button class="btn" style="margin-top:10px" data-a="sinv">حفظ</button><button class="btn g" style="margin-top:8px" data-a="invsync">إعادة احتساب العدد من الاشتراكات</button></div>')};
 
+/* ===== تقسيم الإعدادات إلى أقسام ===== */
+var SSEC=-1;
+var SGR=[['💰','المالية والسحب',['الحدود والعمولة','شروط السحب'],'العمولة والحدود وشرط التوثيق'],
+ ['💳','وسائل الدفع',['وسائل الدفع','واتساب الإيداع','إيداع مباشر عبر تلكرام'],'الوسائل والوكلاء وواتساب وتلكرام'],
+ ['👥','المستثمرون والإحالات',['حد المستثمرين','أقسام حسابي'],'حد العدد وقسم الإحالات'],
+ ['🎡','المسابقة',['مسابقة المليار','مرحلة السحب','المشاركون'],'التشغيل والسحب والمشاركون'],
+ ['📢','الإعلانات والدعم',['شريط الإعلانات','إشعارات رسائل الدعم','روابط الدعم'],'الشريط وروابط الدعم'],
+ ['🔐','الأمان والأدوات',['الأمان','أدوات'],'كلمة المرور والخروج والتهيئة']];
+(function(){var st=document.createElement('style');st.textContent='.sg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}.stl{border:1px solid rgba(216,178,90,.45);border-radius:20px;padding:16px 10px;text-align:center;background:linear-gradient(160deg,rgba(255,255,255,.05),rgba(0,0,0,.2));cursor:pointer}.stl .e{font-size:30px;margin-bottom:6px}.stl b{display:block;font-size:15px;color:var(--tx)}.stl small{display:block;color:var(--mut);font-size:11.5px;margin-top:4px;line-height:1.5}';document.head.appendChild(st)})();
+function sgi(t){for(var i=0;i<SGR.length;i++)for(var j=0;j<SGR[i][2].length;j++)if(t.indexOf(SGR[i][2][j])===0)return i;return SGR.length-1}
+A.ssec=function(v){SSEC=+v;rSet();window.scrollTo(0,0)};
+A.sbk=function(){SSEC=-1;rSet();window.scrollTo(0,0)};
+var _rs4=rSet;rSet=function(){_rs4();var p=$('p_set'),ch=[].slice.call(p.children),G=SGR.map(function(){return []}),cur=SGR.length-1;
+ ch.forEach(function(c){if(c.className==='h3')cur=sgi(c.textContent.replace('+','').trim());G[cur].push(c)});
+ p.innerHTML='';
+ if(SSEC<0||!SGR[SSEC]){p.innerHTML='<div class="sg">'+SGR.map(function(g,i){return '<div class="stl" data-a="ssec" data-v="'+i+'"><div class="e">'+g[0]+'</div><b>'+g[1]+'</b><small>'+g[3]+'</small></div>'}).join('')+'</div>';return}
+ var back=document.createElement('div');back.innerHTML='<button class="btn g" data-a="sbk" style="margin-bottom:4px">‹ رجوع للإعدادات</button><div class="h3" style="margin-top:12px">'+SGR[SSEC][0]+' '+SGR[SSEC][1]+'</div>';p.appendChild(back);
+ G[SSEC].forEach(function(c){p.appendChild(c)})};
+
 rall();
 
 </script></body></html>
