@@ -9,6 +9,7 @@ service cloud.firestore {
     function isAdmin() { return signedIn() && exists(/databases/$(db)/documents/admins/$(request.auth.uid)); }
     function onlyKeys(keys) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys); }
     function userDoc(uid) { return get(/databases/$(db)/documents/users/$(uid)).data; }
+    function maxInv() { return get(/databases/$(db)/documents/config/sets).data.get('maxInv', 0); }
     function userAfter(uid) { return getAfter(/databases/$(db)/documents/users/$(uid)).data; }
 
     // ---- الأدمن ----
@@ -44,6 +45,21 @@ service cloud.firestore {
     match /storeCats/{id}  { allow read: if signedIn(); allow write: if isAdmin(); }
     match /items/{id}      { allow read: if signedIn(); allow write: if isAdmin(); }
     match /links/{id}      { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /investors/{uid} {
+      allow read: if own(uid) || isAdmin();
+      allow create: if own(uid)
+        && (maxInv() == 0 || (getAfter(/databases/$(db)/documents/config/stats).data.n == get(/databases/$(db)/documents/config/stats).data.n + 1
+            && getAfter(/databases/$(db)/documents/config/stats).data.n <= maxInv()));
+      allow update, delete: if isAdmin();
+    }
+    match /config/stats {
+      allow read: if signedIn();
+      allow write: if isAdmin()
+        || (signedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['n'])
+            && request.resource.data.n == resource.data.n + 1
+            && existsAfter(/databases/$(db)/documents/investors/$(request.auth.uid))
+            && !exists(/databases/$(db)/documents/investors/$(request.auth.uid)));
+    }
     match /config/sets     { allow read: if true; allow write: if isAdmin(); }
     match /config/{id}     { allow read: if signedIn(); allow write: if isAdmin(); }
     match /contestP/{id}   { allow read: if signedIn(); allow write: if isAdmin(); }
@@ -55,6 +71,7 @@ service cloud.firestore {
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.paid == 0
         && request.resource.data.fin == false
+        && (exists(/databases/$(db)/documents/investors/$(request.auth.uid)) || existsAfter(/databases/$(db)/documents/investors/$(request.auth.uid)))
         && request.resource.data.price == get(/databases/$(db)/documents/devices/$(request.resource.data.deviceId)).data.price
         && userAfter(request.auth.uid).balance == userDoc(request.auth.uid).balance - request.resource.data.price;
       allow update: if isAdmin()

@@ -266,6 +266,7 @@ var A={
 };
 document.addEventListener('click',function(e){var t=e.target.closest('[data-a]');if(t&&A[t.dataset.a])A[t.dataset.a](t.dataset.v,t,e)});
 document.addEventListener('input',function(e){if(e.target.id==='us'){US=e.target.value;var p=e.target.selectionStart;rUsr();var n=$('us');n.focus();try{n.setSelectionRange(p,p)}catch(x){}}});
+
 rall();
 </script>
 <script type="module">
@@ -305,7 +306,8 @@ function listen(){
  C('methods',function(a){METH=a.map(function(m){return Object.assign({},m,{ag:m.ag||(m.sp||m.id==='asio'?undefined:[])})}).sort(function(x,y){return (x.o||0)-(y.o||0)});rra()});
  C('links',function(a){LINKS=a.map(function(l){return {id:l.id,n:l.n,d:l.d,u:l.u,on:l.on===0?0:1}});rra()});
  C('contestP',function(a){CS.P=a.sort(function(x,y){return (x.seat||0)-(y.seat||0)}).map(function(x){return {uid:x.uid,n:x.n,l:x.l||0,seat:x.seat||0}});rra()});
- un.push(onSnapshot(doc(db,'config','sets'),function(s){var d=s.data()||{};SET.fee=d.fee!=null?+d.fee:1;SET.minw=+d.minw||10000;SET.maxw=+d.maxw||1000000;SET.mind=+d.mind||100000;SET.maxd=+d.maxd||1000000;SET.delay=d.delay!=null?+d.delay:3;SET.wa=d.wa||'';SET.tgd=d.tg||'';SEC.ref=d.refOn===false?0:1;SET.kycWd=d.kycWd!==false;rra()}));
+ un.push(onSnapshot(doc(db,'config','sets'),function(s){var d=s.data()||{};SET.fee=d.fee!=null?+d.fee:1;SET.minw=+d.minw||10000;SET.maxw=+d.maxw||1000000;SET.mind=+d.mind||100000;SET.maxd=+d.maxd||1000000;SET.delay=d.delay!=null?+d.delay:3;SET.wa=d.wa||'';SET.tgd=d.tg||'';SEC.ref=d.refOn===false?0:1;SET.kycWd=d.kycWd!==false;SET.maxInv=+d.maxInv||0;rra()}));
+ un.push(onSnapshot(doc(db,'config','stats'),function(s){SET.invN=(s.data()||{}).n||0;rra()}));
  un.push(onSnapshot(doc(db,'config','contest'),function(s){var d=s.data()||{};CS.on=d.on?1:0;CS.seats=+d.seats||10;CS.need=+d.need||4;CS.days=+d.days||30;CS.startAt=tsm(d.startAt)||Date.now();CS.prize=d.prize||'';CS.phase=d.phase||'reg';CS.drawAt=tsm(d.drawAt);CS.win=d.win||null;CS.excl=d.excl||[];rra()}));
  un.push(onSnapshot(doc(db,'config','ann'),function(s){var d=s.data()||{};AN={on:d.on?1:0,title:d.title||'',badge:d.badge||'',text:d.text||'',days:d.days||3,until:tsm(d.until)};rra()}));
 }
@@ -434,9 +436,15 @@ A.seed2=function(){save(async function(){var b=writeBatch(db);
  b.set(doc(db,'methods','wa'),{n:'واتساب',sp:'wa',dep:1,wd:1,on:1,o:5});b.set(doc(db,'methods','tg'),{n:'تلكرام',sp:'tg',dep:1,wd:0,on:1,o:6});
  [['lodo','لودو','game','dice',1],['pubg','ببجي','game','hel',2],['bal','رصيد','phone','wal',3]].forEach(function(c){b.set(doc(db,'storeCats',c[0]),{n:c[1],t:c[2],ic:c[3],on:1,o:c[4]})});
  if(!(await getDoc(doc(db,'config','sets'))).exists())b.set(doc(db,'config','sets'),{fee:1,minw:10000,maxw:1000000,mind:100000,maxd:1000000,delay:3,refOn:true,kycWd:true,wa:'',tg:''});
+ if(!(await getDoc(doc(db,'config','stats'))).exists())b.set(doc(db,'config','stats'),{n:0});
  if(!(await getDoc(doc(db,'config','contest'))).exists())b.set(doc(db,'config','contest'),{on:false,seats:10,need:4,days:30,startAt:new Date(),prize:'',phase:'reg',drawAt:0,win:null,excl:[]});
  await b.commit();closeS()},'تمت التهيئة ✅')};
 var _rs=rSet;rSet=function(){_rs();$('p_set').insertAdjacentHTML('afterbegin','<div class="h3">شروط السحب</div><div class="card"><div class="row"><div class="sp"><b>اشتراط توثيق الحساب للسحب</b><div class="sub">'+(SET.kycWd?'مفعّل: غير الموثق ما يقدر يسحب':'ملغي: الكل يقدر يسحب')+'</div></div><button class="sw'+(SET.kycWd?' on':'')+'" data-a="kwtg"><i></i></button></div></div>');$('p_set').insertAdjacentHTML('beforeend','<div class="h3">أدوات</div><div class="card"><button class="btn g" data-a="seed">تهيئة البيانات الأولية (مرة وحدة)</button></div>')};
+/* ===== حد المستثمرين ===== */
+A.sinv=function(){var n=Math.max(0,Math.round(+$('s_inv').value||0));save(function(){return sets({maxInv:n})},n?'تم تحديد الحد: '+n+' مستثمر ✅':'تم رفع الحد (بدون حد)')};
+A.invsync=function(){var us={};SUBS.forEach(function(s){us[s.uid]=1});var ids=Object.keys(us);save(async function(){for(var i=0;i<ids.length;i+=400){var b=writeBatch(db);ids.slice(i,i+400).forEach(function(u){b.set(doc(db,'investors',u),{uid:u,ts:new Date()},{merge:true})});if(i+400>=ids.length)b.set(doc(db,'config','stats'),{n:ids.length});await b.commit()}if(!ids.length)await setDoc(doc(db,'config','stats'),{n:0})},'تم احتساب '+ids.length+' مستثمر')};
+var _rs3=rSet;rSet=function(){_rs3();var mx=SET.maxInv||0;$('p_set').insertAdjacentHTML('afterbegin','<div class="h3">حد المستثمرين</div><div class="card"><div class="sub" style="margin-bottom:8px;line-height:1.8">المستثمرون الحاليون: <b>'+(SET.invN||0)+'</b>'+(mx?' من '+mx:' (بدون حد)')+'<br>عند اكتمال العدد ما يقدر مستخدم جديد يشتري أول باقة له. اللي استثمر قبل يكدر يكمل ويشتري باقات ثانية.</div><label class="fl">الحد الأقصى لعدد المستثمرين (0 = بدون حد)</label><input id="s_inv" type="number" min="0" value="'+mx+'"><button class="btn" style="margin-top:10px" data-a="sinv">حفظ</button><button class="btn g" style="margin-top:8px" data-a="invsync">إعادة احتساب العدد من الاشتراكات</button></div>')};
+
 rall();
 
 </script></body></html>

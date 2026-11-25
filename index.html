@@ -748,7 +748,7 @@ rct();rann();
 </script>
 <div id="auth" style="position:fixed;inset:0;z-index:95;background:linear-gradient(160deg,#4a2e1d,#1d0f07);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:max(30px,env(safe-area-inset-top)) 22px 40px"><div id="abox" style="width:100%;max-width:400px;margin:auto 0;padding-top:20px"></div></div>
 <script type="module">
-let KYCWD=true;
+let KYCWD=true,MAXINV=0,INVN=0,STATS_OK=false;
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import{getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,reauthenticateWithCredential,EmailAuthProvider,updatePassword}from"https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import{getFirestore,doc,getDoc,setDoc,updateDoc,addDoc,collection,query,where,orderBy,onSnapshot,writeBatch,increment}from"https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
@@ -781,7 +781,8 @@ function listen(){
  C('items',function(a){ITEMS=a.filter(function(i){return i.on!==0&&i.on!==false}).map(function(i){return {id:i.id,n:i.n,q:i.q,p:+i.p||0,c:i.c,i:i.ic||'',img:i.img||'',pre:i.pre||'',op:i.op||''}}).sort(function(x,y){return x.p-y.p});rr()});
  C('methods',function(a){METH=a.sort(function(x,y){return (x.o||0)-(y.o||0)}).map(function(m){if(!m.sp&&m.id==='tg'){}return m});rr();if(DS&&$('dfx')&&!$('dfx').querySelector('input'))rdf()});
  C('links',function(a){LINKS=a.map(function(l){return {id:l.id,n:l.n,d:l.d,u:l.u,on:l.on===0?0:1}});rr()});
- un.push(onSnapshot(doc(db,'config','sets'),function(s){var d=s.data()||{};FEE=d.fee!=null?+d.fee:1;MINW=+d.minw||10000;WMAX=+d.maxw||1000000;DMIN=+d.mind||100000;DMAX=+d.maxd||1000000;DELAY=d.delay!=null?+d.delay:3;WA=d.wa||'';TG=d.tg||'';REFON=d.refOn===false?0:1;KYCWD=d.kycWd!==false;rr()}));
+ un.push(onSnapshot(doc(db,'config','sets'),function(s){var d=s.data()||{};FEE=d.fee!=null?+d.fee:1;MINW=+d.minw||10000;WMAX=+d.maxw||1000000;DMIN=+d.mind||100000;DMAX=+d.maxd||1000000;DELAY=d.delay!=null?+d.delay:3;WA=d.wa||'';TG=d.tg||'';REFON=d.refOn===false?0:1;KYCWD=d.kycWd!==false;MAXINV=+d.maxInv||0;rr()}));
+ un.push(onSnapshot(doc(db,'config','stats'),function(s){var d=s.data();STATS_OK=!!d;INVN=d&&d.n||0}));
  un.push(onSnapshot(doc(db,'config','contest'),function(s){var d=s.data()||{};CT.on=d.on?1:0;CT.seats=+d.seats||10;CT.need=+d.need||4;CT.days=+d.days||30;CT.startAt=tsm(d.startAt)||Date.now();CT.prize=d.prize||'';CT.phase=d.phase||'reg';CT.drawAt=tsm(d.drawAt);rr()}));
  un.push(onSnapshot(doc(db,'config','ann'),function(s){var d=s.data()||{};AN={on:d.on?1:0,title:d.title||'',badge:d.badge||'',text:d.text||'',until:tsm(d.until)};rr()}));
  un.push(onSnapshot(collection(db,'contestP'),function(s){U.cp=s.docs.map(function(d){var x=d.data();x.id=d.id;return x});rebuildCt();rr()},function(e){}));
@@ -823,7 +824,10 @@ function fail(e){console.error(e);toast(eMsg(e));busy=false}
 A.lo2=function(){$('sheet').classList.remove('on');signOut(auth)};
 A.li=function(){};
 A.buy=async function(v){if(busy)return;var d=DEV.find(function(x){return x.id===v});if(!d)return;if(taken(d.cat))return toast('عندك استثمار فعّال بهذه الفئة');if(d.price>bal)return toast('رصيدك غير كافٍ، اشحن من المحفظة');
- busy=true;try{var b=writeBatch(db),sr=doc(collection(db,'subs'));
+ busy=true;try{var first=true;try{first=!(await getDoc(doc(db,'investors',U.uid))).exists()}catch(e){}
+  if(first&&MAXINV>0&&INVN>=MAXINV){busy=false;return toast('اكتمل عدد المستثمرين المسموح حالياً، حاول لاحقاً')}
+  var b=writeBatch(db),sr=doc(collection(db,'subs'));
+  if(first){b.set(doc(db,'investors',U.uid),{uid:U.uid,ts:new Date()});if(STATS_OK)b.update(doc(db,'config','stats'),{n:increment(1)})}
   b.update(doc(db,'users',U.uid),{balance:increment(-d.price)});
   b.set(sr,{uid:U.uid,u:ME.name,deviceId:d.id,name:d.name,kind:d.kind,e:d.e,cat:d.cat,price:d.price,r:d.r,days:d.days,start:new Date(),paid:0,fin:false});
   b.set(doc(collection(db,'txs')),{uid:U.uid,t:'inv',n:'شراء '+d.name,a:'-'+fmt(d.price),s:'ok',l:'مفعّل',ts:new Date()});
