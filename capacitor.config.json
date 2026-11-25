@@ -1,0 +1,11 @@
+{
+  "appId": "com.almilyar.app",
+  "appName": "المليار",
+  "webDir": "www",
+  "backgroundColor": "#1a0f08",
+  "server": {
+    "url": "https://almilyar-app.github.io/almilyar/",
+    "androidScheme": "https",
+    "allowNavigation": ["almilyar-app.github.io", "*.googleapis.com", "*.firebaseapp.com", "*.gstatic.com"]
+  }
+}
