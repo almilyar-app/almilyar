@@ -428,17 +428,17 @@ A.csspin=function(){if(CS.phase!=='draw'||Date.now()<CS.drawAt)return toast('ا�
 A.cswx=function(){save(async function(){var b=writeBatch(db);b.set(doc(db,'config','contest'),{phase:'reg',win:null},{merge:true});b.set(doc(db,'config','ann'),{on:false},{merge:true});await b.commit()},'أُزيل شريط الفائز')};
 A.csnew=function(){save(async function(){var b=writeBatch(db);CS.P.forEach(function(p){b.delete(doc(db,'contestP',p.uid))});b.set(doc(db,'config','contest'),{phase:'reg',win:null,drawAt:0,startAt:new Date(),excl:[]},{merge:true});await b.commit()},'بدأت جولة جديدة')};
 function sname(n){var w=(n||'').trim().split(/\s+/);return w[0]+(w[1]?' '+w[1].charAt(0)+'.':'')}
-A.csref=function(){save(async function(){var pc=CATS.find(function(c){return c.n==='مميزة'}),pid=pc?pc.id:'b',first={};SUBS.forEach(function(s){if(s.cat!==pid)return;var t=ts2d(s.start).getTime();if(!first[s.uid]||t<first[s.uid])first[s.uid]=t});var depOk={};RDEP.forEach(function(d){if(d.s==='ok'&&(d.a||0)>0)depOk[d.uid]=1});var now=Date.now(),exc=CS.excl||[];
+A.csref=function(){save(async function(){var pc=CATS.find(function(c){return c.n==='مميزة'}),pid=pc?pc.id:'b',first={};SUBS.forEach(function(s){var t=ts2d(s.start).getTime();if(!first[s.uid]||t<first[s.uid])first[s.uid]=t});var depOk={};RDEP.forEach(function(d){if(d.s==='ok'&&(d.a||0)>0)depOk[d.uid]=1});var now=Date.now(),exc=CS.excl||[];
   var cur=CS.P.map(function(p){return p.uid}),seat=CS.P.reduce(function(m,p){return Math.max(m,p.seat||0)},0);
   var claim={};RAW.forEach(function(x){if(!x.refBy||!first[x.id]||first[x.id]<(CS.startAt-0))return;var r=RAW.find(function(u){return u.rc===x.refBy&&u.id!==x.id});if(r&&(!claim[r.id]||first[x.id]<claim[r.id]))claim[r.id]=first[x.id]});
-  /* المشارك ما يحتاج باقة: موثّق + أول مدعو فعّل باقة مميزة بعد بدء الجولة */
+  /* المشارك ما يحتاج باقة: موثّق + أول مدعو فعّل أي باقة بعد بدء الجولة */
   var cands=RAW.filter(function(u){return u.kyc==='ok'&&claim[u.id]&&exc.indexOf(u.id)<0&&cur.indexOf(u.id)<0}).sort(function(a,b){return claim[a.id]-claim[b.id]});
   var parts=CS.P.map(function(p){return {uid:p.uid,seat:p.seat}});cands.forEach(function(u){if(parts.length<CS.seats)parts.push({uid:u.id,seat:++seat})});
   var ops=[];parts.forEach(function(p){var u=RAW.find(function(x){return x.id===p.uid});if(!u)return;var cnt=RAW.filter(function(x){return x.refBy&&x.refBy===u.rc&&x.id!==u.id&&depOk[x.id]&&first[x.id]&&now-first[x.id]>=3*864e5}).length;ops.push(function(b){b.set(doc(db,'contestP',p.uid),{uid:p.uid,n:sname(u.name),l:Math.min(CS.need,cnt),seat:p.seat})})});
   RAW.forEach(function(u){var n=RAW.filter(function(x){return x.refBy&&x.refBy===u.rc&&x.id!==u.id}).length;if((u.refN||0)!==n)ops.push(function(b){b.update(doc(db,'users',u.id),{refN:n})})});
   for(var i=0;i<ops.length;i+=400){var b=writeBatch(db);ops.slice(i,i+400).forEach(function(f){f(b)});await b.commit()}
   log('تحديث المسابقة ('+parts.length+' مشارك)')},'تم تحديث المشاركين والمستويات ✅')};
-var _rc=rcsd;rcsd=function(){return '<div class="card"><button class="btn g" data-a="csref">🔄 تحديث المشاركين والمستويات</button><div class="sub" style="margin-top:8px;line-height:1.7">يحسب أول المشتركين (موثّق + أول شخص من مدعويه فعّل باقة مميزة — المشارك نفسه ما يحتاج باقة) ومستوى كل واحد من إحالاته. اضغطه كل يوم أو قبل بدء السحب.</div></div>'+_rc()};
+var _rc=rcsd;rcsd=function(){return '<div class="card"><button class="btn g" data-a="csref">🔄 تحديث المشاركين والمستويات</button><div class="sub" style="margin-top:8px;line-height:1.7">يحسب أول المشتركين (موثّق + أول شخص من مدعويه فعّل أي باقة — المشارك نفسه ما يحتاج باقة) ومستوى كل واحد من إحالاته. اضغطه كل يوم أو قبل بدء السحب.</div></div>'+_rc()};
 
 /* ===== الدردشة ===== */
 A.cv=function(v){var c=CHATS.find(function(x){return x.id===v});if(!c)return;updateDoc(doc(db,'chats',v),{unread:false}).catch(function(){});if(chatUn)chatUn();
