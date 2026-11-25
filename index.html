@@ -594,7 +594,7 @@ var A={
  wpm:function(v){wm=v;WS=true;DIMG='';rwf();$('wpms').style.display='none';$('wform').style.display='block';window.scrollTo(0,0)},
  wsend:function(){var m=wfm(),asio=m.id==='asio',a=Math.round(+$('wamt').value),acc=($('wacc').value||'').replace(/\s/g,'');if(!a)return toast('اكتب مبلغ السحب');if(a<MINW||a>WMAX)return toast('المبلغ من '+fmt(MINW)+' إلى '+fmt(WMAX)+' د.ع');if(a>bal)return toast('المبلغ أكبر من رصيدك');
   if(asio){if(!/^07\d{9}$/.test(acc))return toast('اكتب رقم هاتف صحيح من 11 رقم يبدأ بـ 07')}
-  else if(m.id==='mc'){if(!/^\d{16}$/.test(acc))return toast('رقم البطاقة 16 رقماً')}
+  else if(m.id==='mc'){if(!/^(\d{10}|\d{12})$/.test(acc))return toast('رقم البطاقة لازم يكون 10 أو 12 رقم')}
   else if(!/^\d{8,}$/.test(acc))return toast('اكتب رقم المحفظة (أرقام فقط)');
   if(!asio&&!DIMG)return toast('ارفق صورة باركود المحفظة');
   var n=wnet(a),lg={t:'wd',d:nowS(),n:'طلب سحب '+wm,a:'-'+fmt(a),s:'wait',l:'قيد المراجعة'};bal-=a;LOG.unshift(lg);AWD.unshift({id:Date.now(),u:'أحمد العراقي',a:a,f:n[0],net:n[1],m:wm,acc:acc,img:asio?'':DIMG,s:'wait',lg:lg});DIMG='';A.wback();toast('تم إرسال طلب السحب — المبلغ محجوز لحين التنفيذ ✅')},
@@ -833,7 +833,7 @@ A.dep=async function(){if(busy)return;var m=dfm(),e,lbl;
  busy=true;try{var r=doc(collection(db,'deposits')),b=writeBatch(db);e.uid=U.uid;e.u=ME.name;e.m=pay;e.s='wait';e.img=DIMG;e.ts=new Date();
   b.set(r,e);b.set(doc(db,'txs',r.id),{uid:U.uid,t:'dep',n:'طلب إيداع '+pay,a:lbl,s:'wait',l:'قيد المراجعة',ts:new Date()});await b.commit();DIMG='';A.wback();toast('تم إرسال طلبك — قيد المراجعة ✅')}catch(x){fail(x)}busy=false};
 A.wsend=async function(){if(busy)return;var m=wfm(),asio=m.id==='asio',a=Math.round(+$('wamt').value),acc=($('wacc').value||'').replace(/\s/g,'');if(!a)return toast('اكتب مبلغ السحب');if(a<MINW||a>WMAX)return toast('المبلغ من '+fmt(MINW)+' إلى '+fmt(WMAX)+' د.ع');if(a>bal)return toast('المبلغ أكبر من رصيدك');
- if(asio){if(!/^07\d{9}$/.test(acc))return toast('اكتب رقم هاتف صحيح من 11 رقم يبدأ بـ 07')}else if(m.id==='mc'){if(!/^\d{16}$/.test(acc))return toast('رقم البطاقة 16 رقماً')}else if(!/^\d{8,}$/.test(acc))return toast('اكتب رقم المحفظة (أرقام فقط)');
+ if(asio){if(!/^07\d{9}$/.test(acc))return toast('اكتب رقم هاتف صحيح من 11 رقم يبدأ بـ 07')}else if(m.id==='mc'){if(!/^(\d{10}|\d{12})$/.test(acc))return toast('رقم البطاقة لازم يكون 10 أو 12 رقم')}else if(!/^\d{8,}$/.test(acc))return toast('اكتب رقم المحفظة (أرقام فقط)');
  if(!asio&&!DIMG)return toast('ارفق صورة باركود المحفظة');
  var n=wnet(a);busy=true;try{var r=doc(collection(db,'withdrawals')),b=writeBatch(db);
   b.update(doc(db,'users',U.uid),{balance:increment(-a)});
