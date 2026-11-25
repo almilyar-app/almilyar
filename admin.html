@@ -253,7 +253,7 @@ var A={
  irimg:function(v){var i=find(ITEMS,v);if(i){i.img='';log('حذف صورة المنتج '+i.n);toast('تم حذف الصورة');rall()}},
  itg:function(v){var i=find(ITEMS,v);i.on=i.on?0:1;rCnt()},dit:function(v){ITEMS=ITEMS.filter(function(x){return x.id!=v});rall()},
  sset:function(){SET.fee=+$('s_fee').value||0;SET.minw=+$('s_minw').value||0;SET.maxw=+$('s_maxw').value||0;SET.mind=+$('s_mind').value||0;SET.maxd=+$('s_maxd').value||0;SET.delay=Math.max(0,+$('s_delay').value||0);if(SET.minw>SET.maxw||SET.mind>SET.maxd)return toast('الحد الأدنى أكبر من الأعلى');toast('تم الحفظ ✅');rall()},
- swa:function(){var v=$('s_wa').value.trim();if(v&&!/^\d{10,15}$/.test(v))return toast('رقم غير صحيح');SET.wa=v;toast('تم حفظ الرقم ✅')},
+ swa:function(){var v=nwa($('s_wa').value);if(v&&!/^\d{10,15}$/.test(v))return toast('رقم غير صحيح');$('s_wa').value=v?'+'+v:'';SET.wa=v;toast('تم حفظ الرقم ✅')},
  mtg:function(v){var r=v.split(':'),m=METH.filter(function(x){return x.id===r[0]})[0];m[r[1]]=m[r[1]]?0:1;rSet()},
  amt:function(){sheet('<h3>إضافة وسيلة دفع</h3><input id="mn" placeholder="اسم الوسيلة"><input id="me" placeholder="أيقونة إيموجي" maxlength="4"><div class="acts"><label class="kv" style="border:0"><span>إيداع</span><input type="checkbox" id="mdp" checked style="width:auto"></label><label class="kv" style="border:0"><span>سحب</span><input type="checkbox" id="mwd" checked style="width:auto"></label></div><button class="btn" data-a="amt2">إضافة</button>')},
  amt2:function(){var n=$('mn').value.trim();if(!n)return toast('اكتب اسم الوسيلة');if(!$('mdp').checked&&!$('mwd').checked)return toast('اختر إيداع أو سحب');METH.push({id:'m'+Date.now(),n:n,emo:$('me').value.trim()||'💠',dep:$('mdp').checked?1:0,wd:$('mwd').checked?1:0,on:1,ag:[]});closeS();toast('تمت الإضافة ✅');rall()},
@@ -379,7 +379,8 @@ A.dsc2=function(v){save(async function(){await deleteDoc(doc(db,'storeCats',v));
 /* ===== الإعدادات ===== */
 function sets(o){return setDoc(doc(db,'config','sets'),o,{merge:true})}
 A.sset=function(){var f=+$('s_fee').value||0,a=+$('s_minw').value||0,b=+$('s_maxw').value||0,c=+$('s_mind').value||0,d=+$('s_maxd').value||0,y=Math.max(0,+$('s_delay').value||0);if(a>b||c>d)return toast('الحد الأدنى أكبر من الأعلى');save(function(){return sets({fee:f,minw:a,maxw:b,mind:c,maxd:d,delay:y})},'تم الحفظ ✅')};
-A.swa=function(){var v=$('s_wa').value.trim();if(v&&!/^\d{10,15}$/.test(v))return toast('رقم غير صحيح');save(function(){return sets({wa:v})},'تم حفظ الرقم ✅')};
+function nwa(v){v=String(v).replace(/[^\d]/g,'');if(v.indexOf('00')==0)v=v.slice(2);if(v.charAt(0)=='0')v='964'+v.slice(1);return v}
+A.swa=function(){var v=nwa($('s_wa').value);if(v&&!/^\d{10,15}$/.test(v))return toast('رقم غير صحيح');$('s_wa').value=v?'+'+v:'';save(function(){return sets({wa:v})},'تم حفظ الرقم ✅')};
 A.stgd=function(){var u=$('s_tgd').value.trim();if(/^@[A-Za-z0-9_]{4,}$/.test(u))u='https://t.me/'+u.slice(1);if(u&&!/^https?:\/\/\S+\.\S+/.test(u))return toast('اكتب @معرّف أو رابطاً صحيحاً');save(function(){return sets({tg:u})},'تم الحفظ ✅')};
 A.kwtg=function(){save(function(){return sets({kycWd:!SET.kycWd})},SET.kycWd?'السحب صار بدون شرط توثيق':'السحب يتطلب توثيق الحساب ✅')};
 A.reftg=function(){save(function(){return sets({refOn:!SEC.ref})},SEC.ref?'الإحالات مخفية':'الإحالات ظاهرة')};
