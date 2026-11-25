@@ -747,6 +747,7 @@ rct();rann();
 </script>
 <div id="auth" style="position:fixed;inset:0;z-index:95;background:linear-gradient(160deg,#4a2e1d,#1d0f07);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:max(30px,env(safe-area-inset-top)) 22px 40px"><div id="abox" style="width:100%;max-width:400px;margin:auto 0;padding-top:20px"></div></div>
 <script type="module">
+let KYCWD=true;
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import{getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,reauthenticateWithCredential,EmailAuthProvider,updatePassword}from"https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import{getFirestore,doc,getDoc,setDoc,updateDoc,addDoc,collection,query,where,orderBy,onSnapshot,writeBatch,increment}from"https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
@@ -779,7 +780,7 @@ function listen(){
  C('items',function(a){ITEMS=a.filter(function(i){return i.on!==0&&i.on!==false}).map(function(i){return {id:i.id,n:i.n,q:i.q,p:+i.p||0,c:i.c,i:i.ic||'',img:i.img||'',pre:i.pre||'',op:i.op||''}}).sort(function(x,y){return x.p-y.p});rr()});
  C('methods',function(a){METH=a.sort(function(x,y){return (x.o||0)-(y.o||0)}).map(function(m){if(!m.sp&&m.id==='tg'){}return m});rr();if(DS&&$('dfx')&&!$('dfx').querySelector('input'))rdf()});
  C('links',function(a){LINKS=a.map(function(l){return {id:l.id,n:l.n,d:l.d,u:l.u,on:l.on===0?0:1}});rr()});
- un.push(onSnapshot(doc(db,'config','sets'),function(s){var d=s.data()||{};FEE=d.fee!=null?+d.fee:1;MINW=+d.minw||10000;WMAX=+d.maxw||1000000;DMIN=+d.mind||100000;DMAX=+d.maxd||1000000;DELAY=d.delay!=null?+d.delay:3;WA=d.wa||'';TG=d.tg||'';REFON=d.refOn===false?0:1;rr()}));
+ un.push(onSnapshot(doc(db,'config','sets'),function(s){var d=s.data()||{};FEE=d.fee!=null?+d.fee:1;MINW=+d.minw||10000;WMAX=+d.maxw||1000000;DMIN=+d.mind||100000;DMAX=+d.maxd||1000000;DELAY=d.delay!=null?+d.delay:3;WA=d.wa||'';TG=d.tg||'';REFON=d.refOn===false?0:1;KYCWD=d.kycWd!==false;rr()}));
  un.push(onSnapshot(doc(db,'config','contest'),function(s){var d=s.data()||{};CT.on=d.on?1:0;CT.seats=+d.seats||10;CT.need=+d.need||4;CT.days=+d.days||30;CT.startAt=tsm(d.startAt)||Date.now();CT.prize=d.prize||'';CT.phase=d.phase||'reg';CT.drawAt=tsm(d.drawAt);rr()}));
  un.push(onSnapshot(doc(db,'config','ann'),function(s){var d=s.data()||{};AN={on:d.on?1:0,title:d.title||'',badge:d.badge||'',text:d.text||'',until:tsm(d.until)};rr()}));
  un.push(onSnapshot(collection(db,'contestP'),function(s){U.cp=s.docs.map(function(d){var x=d.data();x.id=d.id;return x});rebuildCt();rr()},function(e){}));
@@ -833,6 +834,7 @@ A.dep=async function(){if(busy)return;var m=dfm(),e,lbl;
  busy=true;try{var r=doc(collection(db,'deposits')),b=writeBatch(db);e.uid=U.uid;e.u=ME.name;e.m=pay;e.s='wait';e.img=DIMG;e.ts=new Date();
   b.set(r,e);b.set(doc(db,'txs',r.id),{uid:U.uid,t:'dep',n:'طلب إيداع '+pay,a:lbl,s:'wait',l:'قيد المراجعة',ts:new Date()});await b.commit();DIMG='';A.wback();toast('تم إرسال طلبك — قيد المراجعة ✅')}catch(x){fail(x)}busy=false};
 A.wsend=async function(){if(busy)return;var m=wfm(),asio=m.id==='asio',a=Math.round(+$('wamt').value),acc=($('wacc').value||'').replace(/\s/g,'');if(!a)return toast('اكتب مبلغ السحب');if(a<MINW||a>WMAX)return toast('المبلغ من '+fmt(MINW)+' إلى '+fmt(WMAX)+' د.ع');if(a>bal)return toast('المبلغ أكبر من رصيدك');
+ if(KYCWD&&KYC!=='ok')return toast(KYC==='wait'?'توثيقك قيد المراجعة، انتظر الموافقة ثم اسحب':'وثّق حسابك أولاً من «حسابي ← التحقق من الهوية» حتى تقدر تسحب');
  if(asio){if(!/^07\d{9}$/.test(acc))return toast('اكتب رقم هاتف صحيح من 11 رقم يبدأ بـ 07')}else if(m.id==='mc'){if(!/^(\d{10}|\d{12})$/.test(acc))return toast('رقم البطاقة لازم يكون 10 أو 12 رقم')}else if(!/^\d{8,}$/.test(acc))return toast('اكتب رقم المحفظة (أرقام فقط)');
  if(!asio&&!DIMG)return toast('ارفق صورة باركود المحفظة');
  var n=wnet(a);busy=true;try{var r=doc(collection(db,'withdrawals')),b=writeBatch(db);

@@ -305,7 +305,7 @@ function listen(){
  C('methods',function(a){METH=a.map(function(m){return Object.assign({},m,{ag:m.ag||(m.sp||m.id==='asio'?undefined:[])})}).sort(function(x,y){return (x.o||0)-(y.o||0)});rra()});
  C('links',function(a){LINKS=a.map(function(l){return {id:l.id,n:l.n,d:l.d,u:l.u,on:l.on===0?0:1}});rra()});
  C('contestP',function(a){CS.P=a.sort(function(x,y){return (x.seat||0)-(y.seat||0)}).map(function(x){return {uid:x.uid,n:x.n,l:x.l||0,seat:x.seat||0}});rra()});
- un.push(onSnapshot(doc(db,'config','sets'),function(s){var d=s.data()||{};SET.fee=d.fee!=null?+d.fee:1;SET.minw=+d.minw||10000;SET.maxw=+d.maxw||1000000;SET.mind=+d.mind||100000;SET.maxd=+d.maxd||1000000;SET.delay=d.delay!=null?+d.delay:3;SET.wa=d.wa||'';SET.tgd=d.tg||'';SEC.ref=d.refOn===false?0:1;rra()}));
+ un.push(onSnapshot(doc(db,'config','sets'),function(s){var d=s.data()||{};SET.fee=d.fee!=null?+d.fee:1;SET.minw=+d.minw||10000;SET.maxw=+d.maxw||1000000;SET.mind=+d.mind||100000;SET.maxd=+d.maxd||1000000;SET.delay=d.delay!=null?+d.delay:3;SET.wa=d.wa||'';SET.tgd=d.tg||'';SEC.ref=d.refOn===false?0:1;SET.kycWd=d.kycWd!==false;rra()}));
  un.push(onSnapshot(doc(db,'config','contest'),function(s){var d=s.data()||{};CS.on=d.on?1:0;CS.seats=+d.seats||10;CS.need=+d.need||4;CS.days=+d.days||30;CS.startAt=tsm(d.startAt)||Date.now();CS.prize=d.prize||'';CS.phase=d.phase||'reg';CS.drawAt=tsm(d.drawAt);CS.win=d.win||null;CS.excl=d.excl||[];rra()}));
  un.push(onSnapshot(doc(db,'config','ann'),function(s){var d=s.data()||{};AN={on:d.on?1:0,title:d.title||'',badge:d.badge||'',text:d.text||'',days:d.days||3,until:tsm(d.until)};rra()}));
 }
@@ -375,6 +375,7 @@ function sets(o){return setDoc(doc(db,'config','sets'),o,{merge:true})}
 A.sset=function(){var f=+$('s_fee').value||0,a=+$('s_minw').value||0,b=+$('s_maxw').value||0,c=+$('s_mind').value||0,d=+$('s_maxd').value||0,y=Math.max(0,+$('s_delay').value||0);if(a>b||c>d)return toast('الحد الأدنى أكبر من الأعلى');save(function(){return sets({fee:f,minw:a,maxw:b,mind:c,maxd:d,delay:y})},'تم الحفظ ✅')};
 A.swa=function(){var v=$('s_wa').value.trim();if(v&&!/^\d{10,15}$/.test(v))return toast('رقم غير صحيح');save(function(){return sets({wa:v})},'تم حفظ الرقم ✅')};
 A.stgd=function(){var u=$('s_tgd').value.trim();if(/^@[A-Za-z0-9_]{4,}$/.test(u))u='https://t.me/'+u.slice(1);if(u&&!/^https?:\/\/\S+\.\S+/.test(u))return toast('اكتب @معرّف أو رابطاً صحيحاً');save(function(){return sets({tg:u})},'تم الحفظ ✅')};
+A.kwtg=function(){save(function(){return sets({kycWd:!SET.kycWd})},SET.kycWd?'السحب صار بدون شرط توثيق':'السحب يتطلب توثيق الحساب ✅')};
 A.reftg=function(){save(function(){return sets({refOn:!SEC.ref})},SEC.ref?'الإحالات مخفية':'الإحالات ظاهرة')};
 A.mtg=function(v){var r=v.split(':'),m=METH.find(function(x){return x.id===r[0]});save(function(){var o={};o[r[1]]=m[r[1]]?0:1;return updateDoc(doc(db,'methods',r[0]),o)})};
 A.amt2=function(){var n=$('mn').value.trim();if(!n)return toast('اكتب اسم الوسيلة');if(!$('mdp').checked&&!$('mwd').checked)return toast('اختر إيداع أو سحب');save(async function(){await addDoc(collection(db,'methods'),{n:n,emo:$('me').value.trim()||'💠',dep:$('mdp').checked?1:0,wd:$('mwd').checked?1:0,on:1,ag:[],o:Date.now()});closeS()},'تمت الإضافة ✅')};
@@ -428,10 +429,10 @@ A.seed2=function(){save(async function(){var b=writeBatch(db);
  [['mc','ماستركارد / سوبر كي','ماستر كارد','mc','💳','الدفع بالبطاقة الإلكترونية',1,1],['zain','زين كاش','','zain','📱','تحويل فوري ومباشر',2,1],['fib','FIB','','fib','🏦','تحويل مصرفي عبر FIB',3,1],['asio','آسيا حوالة','','asio','💼','دفع عبر محفظة آسيا',4,1]].forEach(function(m){var o={n:m[1],lg:m[3],emo:m[4],d:m[5],dep:1,wd:1,on:1,o:m[6]};if(m[2])o.t=m[2];if(m[0]!=='asio')o.ag=[];b.set(doc(db,'methods',m[0]),o)});
  b.set(doc(db,'methods','wa'),{n:'واتساب',sp:'wa',dep:1,wd:1,on:1,o:5});b.set(doc(db,'methods','tg'),{n:'تلكرام',sp:'tg',dep:1,wd:0,on:1,o:6});
  [['lodo','لودو','game','dice',1],['pubg','ببجي','game','hel',2],['bal','رصيد','phone','wal',3]].forEach(function(c){b.set(doc(db,'storeCats',c[0]),{n:c[1],t:c[2],ic:c[3],on:1,o:c[4]})});
- if(!(await getDoc(doc(db,'config','sets'))).exists())b.set(doc(db,'config','sets'),{fee:1,minw:10000,maxw:1000000,mind:100000,maxd:1000000,delay:3,refOn:true,wa:'',tg:''});
+ if(!(await getDoc(doc(db,'config','sets'))).exists())b.set(doc(db,'config','sets'),{fee:1,minw:10000,maxw:1000000,mind:100000,maxd:1000000,delay:3,refOn:true,kycWd:true,wa:'',tg:''});
  if(!(await getDoc(doc(db,'config','contest'))).exists())b.set(doc(db,'config','contest'),{on:false,seats:10,need:4,days:30,startAt:new Date(),prize:'',phase:'reg',drawAt:0,win:null,excl:[]});
  await b.commit();closeS()},'تمت التهيئة ✅')};
-var _rs=rSet;rSet=function(){_rs();$('p_set').insertAdjacentHTML('beforeend','<div class="h3">أدوات</div><div class="card"><button class="btn g" data-a="seed">تهيئة البيانات الأولية (مرة وحدة)</button></div>')};
+var _rs=rSet;rSet=function(){_rs();$('p_set').insertAdjacentHTML('afterbegin','<div class="h3">شروط السحب</div><div class="card"><div class="row"><div class="sp"><b>اشتراط توثيق الحساب للسحب</b><div class="sub">'+(SET.kycWd?'مفعّل: غير الموثق ما يقدر يسحب':'ملغي: الكل يقدر يسحب')+'</div></div><button class="sw'+(SET.kycWd?' on':'')+'" data-a="kwtg"><i></i></button></div></div>');$('p_set').insertAdjacentHTML('beforeend','<div class="h3">أدوات</div><div class="card"><button class="btn g" data-a="seed">تهيئة البيانات الأولية (مرة وحدة)</button></div>')};
 rall();
 
 </script></body></html>

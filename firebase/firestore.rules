@@ -71,6 +71,7 @@ service cloud.firestore {
       allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
       allow create: if signedIn() && request.resource.data.uid == request.auth.uid && request.resource.data.s == 'wait'
         && request.resource.data.a > 0
+        && (!get(/databases/$(db)/documents/config/sets).data.get('kycWd', true) || userDoc(request.auth.uid).kyc == 'ok')
         && userAfter(request.auth.uid).balance == userDoc(request.auth.uid).balance - request.resource.data.a;
       allow update: if isAdmin();
     }
