@@ -1,0 +1,111 @@
+rules_version = '2';
+// قواعد أمان تطبيق المليار — تعمل على الخطة المجانية (Spark) بدون Cloud Functions
+// الأدمن = أي حساب له مستند باسم uid بمجموعة admins (تنشئه أنت يدوياً من لوحة Firebase)
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function own(uid) { return signedIn() && request.auth.uid == uid; }
+    function isAdmin() { return signedIn() && exists(/databases/$(db)/documents/admins/$(request.auth.uid)); }
+    function onlyKeys(keys) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys); }
+    function userDoc(uid) { return get(/databases/$(db)/documents/users/$(uid)).data; }
+    function userAfter(uid) { return getAfter(/databases/$(db)/documents/users/$(uid)).data; }
+
+    // ---- الأدمن ----
+    match /admins/{uid} {
+      allow read: if own(uid);
+      allow write: if false;
+    }
+
+    // ---- المستخدمون ----
+    match /users/{uid} {
+      allow read: if own(uid) || isAdmin();
+      allow create: if own(uid)
+        && request.resource.data.balance == 0
+        && request.resource.data.ban == false
+        && request.resource.data.kyc == 'none';
+      allow update: if isAdmin()
+        // المستخدم يعدّل بياناته الشخصية فقط
+        || (own(uid) && onlyKeys(['name', 'phone', 'photo', 'lastLogin']))
+        // إرسال طلب التوثيق
+        || (own(uid) && onlyKeys(['kyc']) && request.resource.data.kyc == 'wait')
+        // الشراء: المستخدم يقدر ينقّص رصيده فقط (ويُتحقق من المبلغ بقواعد subs/orders)
+        || (own(uid) && onlyKeys(['balance'])
+            && request.resource.data.balance >= 0
+            && request.resource.data.balance < resource.data.balance
+            && userDoc(uid).ban == false);
+      allow delete: if false;
+    }
+
+    // ---- بيانات يعدّلها الأدمن ويقرأها كل مسجّل ----
+    match /devices/{id}    { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /categories/{id} { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /methods/{id}    { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /storeCats/{id}  { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /items/{id}      { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /links/{id}      { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /config/{id}     { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /contestP/{id}   { allow read: if signedIn(); allow write: if isAdmin(); }
+
+    // ---- الاستثمارات (الباقات المشتراة) ----
+    match /subs/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.paid == 0
+        && request.resource.data.fin == false
+        && request.resource.data.price == get(/databases/$(db)/documents/devices/$(request.resource.data.deviceId)).data.price
+        && userAfter(request.auth.uid).balance == userDoc(request.auth.uid).balance - request.resource.data.price;
+      allow update: if isAdmin()
+        || (resource.data.uid == request.auth.uid && onlyKeys(['fin']) && request.resource.data.fin == true);
+      allow delete: if isAdmin();
+    }
+
+    // ---- طلبات الإيداع والسحب والتوثيق ----
+    match /deposits/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid && request.resource.data.s == 'wait';
+      allow update: if isAdmin();
+    }
+    match /withdrawals/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid && request.resource.data.s == 'wait'
+        && request.resource.data.a > 0
+        && userAfter(request.auth.uid).balance == userDoc(request.auth.uid).balance - request.resource.data.a;
+      allow update: if isAdmin();
+    }
+    match /kycReqs/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid && request.resource.data.s == 'wait';
+      allow update: if isAdmin();
+    }
+
+    // ---- طلبات المتجر ----
+    match /orders/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.s == 'wait'
+        && request.resource.data.total > 0
+        && userAfter(request.auth.uid).balance == userDoc(request.auth.uid).balance - request.resource.data.total;
+      allow update: if isAdmin();
+    }
+
+    // ---- سجل العمليات (يظهر للمستخدم بمركز النشاط) ----
+    match /txs/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if signedIn() && (request.resource.data.uid == request.auth.uid || isAdmin());
+      allow update: if isAdmin();
+    }
+
+    // ---- دردشة الدعم ----
+    match /chats/{uid}/msgs/{id} {
+      allow read: if own(uid) || isAdmin();
+      allow create: if (own(uid) && request.resource.data.from == 'u') || (isAdmin() && request.resource.data.from == 'a');
+    }
+    match /chats/{uid} {
+      allow read: if own(uid) || isAdmin();
+      allow write: if own(uid) || isAdmin();
+    }
+  }
+}
