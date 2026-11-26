@@ -294,7 +294,7 @@ function listen(){
  var C=function(n,fn,ord){un.push(onSnapshot(collection(db,n),function(s){fn(s.docs.map(function(d){var x=d.data();x.id=d.id;return x}))},function(e){console.warn(n,e.code);if(e.code==='permission-denied')toast(eMsg(e))}))};
  C('users',function(a){RAW=a;buildUsers();rra();refQ()});
  C('subs',function(a){SUBS=a;buildUsers();rra();refQ()});
- C('deposits',function(a){RDEP=a;DEP=a.sort(function(x,y){return tsm(y.ts)-tsm(x.ts)}).map(function(x){return {id:x.id,uid:x.uid,u:x.u||nameOf(x.uid),a:x.a||0,m:x.m,ag:x.ag||'',from:x.from||'',card:x.card||'',img:x.img||'',s:x.s,t:tstr(x.ts),reason:x.reason||''}});rra()});
+ C('deposits',function(a){RDEP=a;if(typeof csQ==='function')csQ();DEP=a.sort(function(x,y){return tsm(y.ts)-tsm(x.ts)}).map(function(x){return {id:x.id,uid:x.uid,u:x.u||nameOf(x.uid),a:x.a||0,m:x.m,ag:x.ag||'',from:x.from||'',card:x.card||'',img:x.img||'',s:x.s,t:tstr(x.ts),reason:x.reason||''}});rra()});
  C('withdrawals',function(a){WD=a.sort(function(x,y){return tsm(y.ts)-tsm(x.ts)}).map(function(x){return {id:x.id,uid:x.uid,u:x.u||nameOf(x.uid),a:x.a,f:x.f,net:x.net,m:x.m,acc:x.acc,img:x.img||'',s:x.s,t:tstr(x.ts)}});rra()});
  C('orders',function(a){ORD=a.sort(function(x,y){return tsm(y.ts)-tsm(x.ts)}).map(function(x){return {id:x.id,uid:x.uid,u:x.u||nameOf(x.uid),it:x.it,p:x.p||x.total,info:x.ph?'الهاتف: '+x.ph:(x.a?'الحساب: '+x.a+' · الايدي: '+x.pid:'—'),s:x.s,t:tstr(x.ts)}});rra()});
  C('kycReqs',function(a){KYCR=a.sort(function(x,y){return tsm(y.ts)-tsm(x.ts)}).map(function(x){return {id:x.id,uid:x.uid,u:x.u||nameOf(x.uid),name:x.name,idn:x.idn,imgs:[x.i1,x.i2,x.i3],s:x.s,t:tstr(x.ts)}});rra()});
@@ -305,16 +305,16 @@ function listen(){
  C('storeCats',function(a){STC=a.map(function(c){return {id:c.id,n:c.n,t:c.t||'game',on:c.on===0||c.on===false?0:1,o:c.o||0}}).sort(function(x,y){return x.o-y.o});rra()});
  C('methods',function(a){METH=a.map(function(m){return Object.assign({},m,{ag:m.ag||(m.sp||m.id==='asio'?undefined:[])})}).sort(function(x,y){return (x.o||0)-(y.o||0)});rra()});
  C('links',function(a){LINKS=a.map(function(l){return {id:l.id,n:l.n,d:l.d,u:l.u,on:l.on===0?0:1}});rra()});
- C('contestP',function(a){CS.P=a.sort(function(x,y){return (x.seat||0)-(y.seat||0)}).map(function(x){return {uid:x.uid,n:x.n,l:x.l||0,seat:x.seat||0}});rra()});
+ C('contestP',function(a){CSP_OK=1;CS.P=a.sort(function(x,y){return (x.seat||0)-(y.seat||0)}).map(function(x){return {uid:x.uid,n:x.n,l:x.l||0,seat:x.seat||0}});rra()});
  un.push(onSnapshot(doc(db,'config','sets'),function(s){var d=s.data()||{};SET.fee=d.fee!=null?+d.fee:1;SET.minw=+d.minw||10000;SET.maxw=+d.maxw||1000000;SET.mind=+d.mind||100000;SET.maxd=+d.maxd||1000000;SET.delay=d.delay!=null?+d.delay:3;SET.wa=d.wa||'';SET.tgd=d.tg||'';SEC.ref=d.refOn===false?0:1;SET.refPct=d.refPct!=null?+d.refPct:2;refQ();SET.kycWd=d.kycWd!==false;SET.kycShow=d.kycShow!==false;SET.maxInv=+d.maxInv||0;rra()}));
  un.push(onSnapshot(doc(db,'config','stats'),function(s){SET.invN=(s.data()||{}).n||0;rra()}));
- un.push(onSnapshot(doc(db,'config','contest'),function(s){var d=s.data()||{};CS.on=d.on?1:0;CS.seats=+d.seats||10;CS.need=+d.need||4;CS.days=+d.days||30;CS.startAt=tsm(d.startAt)||Date.now();CS.prize=d.prize||'';CS.phase=d.phase||'reg';CS.drawAt=tsm(d.drawAt);CS.win=d.win||null;CS.excl=d.excl||[];rra()}));
+ un.push(onSnapshot(doc(db,'config','contest'),function(s){var d=s.data()||{};CS.on=d.on?1:0;CS.seats=+d.seats||10;CS.need=+d.need||4;CS.days=+d.days||30;CS.startAt=tsm(d.startAt)||Date.now();CS.prize=d.prize||'';CS.phase=d.phase||'reg';CS.drawAt=tsm(d.drawAt);CS.win=d.win||null;CS.excl=d.excl||[];CSC_OK=1;rra();if(typeof csQ==='function')csQ()}));
  un.push(onSnapshot(doc(db,'config','ann'),function(s){var d=s.data()||{};AN={on:d.on?1:0,title:d.title||'',badge:d.badge||'',text:d.text||'',days:d.days||3,until:tsm(d.until)};rra()}));
 }
 function stop(){un.forEach(function(f){try{f()}catch(e){}});un=[];RAW=[];SUBS=[];USERS=[];DEP=[];WD=[];ORD=[];KYCR=[]}
 /* ===== أرباح الإحالة: نسبة من قيمة كل باقة يفعّلها المدعو ===== */
 var REF_FROM=Date.parse('2026-11-25T00:00:00+03:00'),refBusy=false,refT=0;
-function refQ(){clearTimeout(refT);refT=setTimeout(refRun,1500)}
+function refQ(){clearTimeout(refT);refT=setTimeout(refRun,1500);if(typeof csQ==='function')csQ()}
 async function refRun(){if(refBusy||!ADMIN||!RAW.length)return;refBusy=true;try{
  var pct=SET.refPct!=null?+SET.refPct:2;
  if(SEC.ref&&pct>0){for(var i=0;i<SUBS.length;i++){var s=SUBS[i];if(s.ref||tsm(s.start)<REF_FROM)continue;
@@ -428,17 +428,21 @@ A.csspin=function(){if(CS.phase!=='draw'||Date.now()<CS.drawAt)return toast('ا�
 A.cswx=function(){save(async function(){var b=writeBatch(db);b.set(doc(db,'config','contest'),{phase:'reg',win:null},{merge:true});b.set(doc(db,'config','ann'),{on:false},{merge:true});await b.commit()},'أُزيل شريط الفائز')};
 A.csnew=function(){save(async function(){var b=writeBatch(db);CS.P.forEach(function(p){b.delete(doc(db,'contestP',p.uid))});b.set(doc(db,'config','contest'),{phase:'reg',win:null,drawAt:0,startAt:new Date(),excl:[]},{merge:true});await b.commit()},'بدأت جولة جديدة')};
 function sname(n){var w=(n||'').trim().split(/\s+/);return w[0]+(w[1]?' '+w[1].charAt(0)+'.':'')}
-A.csref=function(){save(async function(){var pc=CATS.find(function(c){return c.n==='مميزة'}),pid=pc?pc.id:'b',first={};SUBS.forEach(function(s){var t=ts2d(s.start).getTime();if(!first[s.uid]||t<first[s.uid])first[s.uid]=t});var depOk={};RDEP.forEach(function(d){if(d.s==='ok'&&(d.a||0)>0)depOk[d.uid]=1});var now=Date.now(),exc=CS.excl||[];
+var csBusy=false,csT=0,CSP_OK=0,CSC_OK=0;
+async function csCalc(auto){if(csBusy)return;csBusy=true;try{var pc=CATS.find(function(c){return c.n==='مميزة'}),pid=pc?pc.id:'b',first={};SUBS.forEach(function(s){var t=ts2d(s.start).getTime();if(!first[s.uid]||t<first[s.uid])first[s.uid]=t});var depOk={};RDEP.forEach(function(d){if(d.s==='ok'&&(d.a||0)>0)depOk[d.uid]=1});var now=Date.now(),exc=CS.excl||[];
   var cur=CS.P.map(function(p){return p.uid}),seat=CS.P.reduce(function(m,p){return Math.max(m,p.seat||0)},0);
   var claim={};RAW.forEach(function(x){if(!x.refBy||!first[x.id]||first[x.id]<(CS.startAt-0))return;var r=RAW.find(function(u){return u.rc===x.refBy&&u.id!==x.id});if(r&&(!claim[r.id]||first[x.id]<claim[r.id]))claim[r.id]=first[x.id]});
   /* المشارك ما يحتاج باقة: موثّق + أول مدعو فعّل أي باقة بعد بدء الجولة */
   var cands=RAW.filter(function(u){return u.kyc==='ok'&&claim[u.id]&&exc.indexOf(u.id)<0&&cur.indexOf(u.id)<0}).sort(function(a,b){return claim[a.id]-claim[b.id]});
   var parts=CS.P.map(function(p){return {uid:p.uid,seat:p.seat}});cands.forEach(function(u){if(parts.length<CS.seats)parts.push({uid:u.id,seat:++seat})});
-  var ops=[];parts.forEach(function(p){var u=RAW.find(function(x){return x.id===p.uid});if(!u)return;var cnt=RAW.filter(function(x){return x.refBy&&x.refBy===u.rc&&x.id!==u.id&&depOk[x.id]&&first[x.id]&&now-first[x.id]>=3*864e5}).length;ops.push(function(b){b.set(doc(db,'contestP',p.uid),{uid:p.uid,n:sname(u.name),l:Math.min(CS.need,cnt),seat:p.seat})})});
+  var ops=[];parts.forEach(function(p){var u=RAW.find(function(x){return x.id===p.uid});if(!u)return;var cnt=RAW.filter(function(x){return x.refBy&&x.refBy===u.rc&&x.id!==u.id&&depOk[x.id]&&first[x.id]}).length;var nm=sname(u.name),lv=Math.min(CS.need,cnt),ex=CS.P.find(function(q){return q.uid===p.uid});if(auto&&ex&&ex.n===nm&&ex.l===lv&&ex.seat===p.seat)return;ops.push(function(b){b.set(doc(db,'contestP',p.uid),{uid:p.uid,n:nm,l:lv,seat:p.seat})})});
   RAW.forEach(function(u){var n=RAW.filter(function(x){return x.refBy&&x.refBy===u.rc&&x.id!==u.id}).length;if((u.refN||0)!==n)ops.push(function(b){b.update(doc(db,'users',u.id),{refN:n})})});
   for(var i=0;i<ops.length;i+=400){var b=writeBatch(db);ops.slice(i,i+400).forEach(function(f){f(b)});await b.commit()}
-  log('تحديث المسابقة ('+parts.length+' مشارك)')},'تم تحديث المشاركين والمستويات ✅')};
-var _rc=rcsd;rcsd=function(){return '<div class="card"><button class="btn g" data-a="csref">🔄 تحديث المشاركين والمستويات</button><div class="sub" style="margin-top:8px;line-height:1.7">يحسب أول المشتركين (موثّق + أول شخص من مدعويه فعّل أي باقة — المشارك نفسه ما يحتاج باقة) ومستوى كل واحد من إحالاته. اضغطه كل يوم أو قبل بدء السحب.</div></div>'+_rc()};
+  if(!auto)log('تحديث المسابقة ('+parts.length+' مشارك)')}finally{csBusy=false}}
+A.csref=function(){save(function(){return csCalc(false)},'تم تحديث المشاركين والمستويات ✅')};
+/* تحديث تلقائي فور تفعيل أي مدعو لباقة (والتطبيق مفتوح عند الأدمن) — بمرحلة التسجيل فقط */
+function csQ(){clearTimeout(csT);csT=setTimeout(function(){if(ADMIN&&CS.on&&CS.phase==='reg'&&CSP_OK&&CSC_OK&&RAW.length&&!busy)csCalc(true).catch(function(e){console.warn('cs',e)})},2500)}
+var _rc=rcsd;rcsd=function(){return '<div class="card"><button class="btn g" data-a="csref">🔄 تحديث المشاركين والمستويات</button><div class="sub" style="margin-top:8px;line-height:1.7">يحسب أول المشتركين (موثّق + أول شخص من مدعويه فعّل أي باقة — المشارك نفسه ما يحتاج باقة) ومستوى كل واحد من إحالاته. تُحسب الإحالة فور تفعيل المدعو لأي باقة، ويتحدّث تلقائياً والتطبيق مفتوح عندك؛ والزر للتحديث اليدوي.</div></div>'+_rc()};
 
 /* ===== الدردشة ===== */
 A.cv=function(v){var c=CHATS.find(function(x){return x.id===v});if(!c)return;updateDoc(doc(db,'chats',v),{unread:false}).catch(function(){});if(chatUn)chatUn();
