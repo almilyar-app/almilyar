@@ -123,6 +123,26 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ---- كروب الدردشة الجماعي ----
+    match /group/{id} {
+      allow read: if signedIn();
+      allow create: if isAdmin()
+        || (signedIn()
+            && request.resource.data.uid == request.auth.uid
+            && request.resource.data.keys().hasOnly(['uid', 'n', 'mid', 't', 'ts'])
+            && request.resource.data.t is string
+            && request.resource.data.t.size() > 0
+            && request.resource.data.t.size() <= 500
+            && request.resource.data.ts == request.time
+            && request.resource.data.n == userDoc(request.auth.uid).name
+            && userDoc(request.auth.uid).ban == false
+            && userDoc(request.auth.uid).get('gMute', false) == false
+            && get(/databases/$(db)/documents/config/sets).data.get('gOn', true) != false
+            && get(/databases/$(db)/documents/config/sets).data.get('gLock', false) == false);
+      allow delete: if isAdmin();
+      allow update: if false;
+    }
+
     // ---- دردشة الدعم ----
     match /chats/{uid}/msgs/{id} {
       allow read: if own(uid) || isAdmin();
