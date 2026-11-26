@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head><script>(function(){var V="1795731503";try{fetch("version.json?nc="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.v||j.v===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===j.v)return;u.searchParams.set("v",j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<head><script>(function(){var V="1795732786";try{fetch("version.json?nc="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.v||j.v===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===j.v)return;u.searchParams.set("v",j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 <meta charset="utf-8">
 <title>المليار</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -1010,7 +1010,7 @@ function gR(){var box=$('gmsgs');if(!box)return;var atB=box.dataset.init!=='1'||
  box.innerHTML=GMS.length?GMS.map(function(m){var me=m.uid===U.uid,ad=!!m.a,dd=gDay(m.ts),sep=dd!==pd?'<div style="text-align:center;margin:14px 0 8px"><span style="font-size:13px;color:#e8d3a8;border:1px solid rgba(216,178,90,.35);background:rgba(216,178,90,.08);padding:4px 16px;border-radius:20px">'+dd+'</span></div>':'';pd=dd;
   var img=m.img?'<img src="'+m.img+'" data-a="gimgv" data-v="'+m.id+'" alt="" style="display:block;max-width:100%;max-height:260px;border-radius:14px;margin:4px 0;cursor:pointer">':'',txt=m.t?'<div style="font-size:15px;line-height:1.65;white-space:pre-wrap;word-break:break-word">'+refEsc(m.t)+'</div>':'',tm='<div style="font-size:11px;opacity:.7;text-align:left;margin-top:3px">'+gT(m.ts)+'</div>';
   if(me)return sep+'<div style="display:flex;justify-content:flex-end;margin:6px 0"><div class="gbub me" style="border-radius:20px 20px 20px 6px">'+img+txt+tm+'</div></div>';
-  var av=ad?'<div class="gav logo"></div>':'<div class="gav">'+refEsc((m.n||'؟').trim().charAt(0))+'</div>';
+  var av=ad?'<div class="gav logo"></div>':'<div class="gav" data-u="'+refEsc(m.uid||'')+'" style="overflow:hidden">'+(AVC&&AVC[m.uid]?'<img src="'+AVC[m.uid]+'" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block">':refEsc((m.n||'؟').trim().charAt(0)))+'</div>';
   var nm=ad?'<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:3px"><b style="color:#f0cd7a;font-size:14.5px;display:flex;align-items:center;gap:6px">'+CROWN+'إدارة المليار</b><span style="font-size:11.5px;font-weight:800;color:#2a1a11;background:linear-gradient(135deg,#f0d283,#c49a45);padding:2px 10px;border-radius:12px">مدير</span></div>':'<b style="display:block;color:#f0cd7a;font-size:14px;margin-bottom:2px">'+refEsc(m.n||'عضو')+'</b>';
   return sep+'<div style="display:flex;align-items:flex-end;gap:8px;margin:6px 0">'+av+'<div class="gbub'+(ad?' ad':'')+'" style="border-radius:20px 20px 6px 20px">'+nm+img+txt+tm+'</div></div>'}).join(''):'<div style="text-align:center;color:#a8977c;padding:40px 10px">لا توجد رسائل بعد — كن أول من يكتب 👋</div>';
  if(atB){box.dataset.init='1';setTimeout(function(){window.scrollTo(0,document.body.scrollHeight)},40)}}
@@ -1054,6 +1054,16 @@ setInterval(function(){if(U.uid&&GON&&!BAN){if(gBgUid!==U.uid)gBgStart()}else if
 var _asubB=asub;asub=function(k){var r=_asubB.apply(this,arguments);if(k==='grp'){var L=GMS;gSeenS(Date.now());GUNR=0;gBadge()}return r};
 var _gRB=gR;gR=function(){_gRB();if(AK==='grp'){gSeenS(Date.now());if(GUNR){GUNR=0;gBadge()}}};
 var _raccB=racc;racc=function(){_raccB();gBadge()};
+
+/* ===== صور الأعضاء بالكروب ===== */
+var AVC={},AVQ={};
+function avThumb(src){return new Promise(function(res){if(!src)return res('');var im=new Image();im.onload=function(){var S=96,c=document.createElement('canvas');c.width=S;c.height=S;var x=c.getContext('2d'),k=Math.min(im.width,im.height);x.drawImage(im,(im.width-k)/2,(im.height-k)/2,k,k,0,0,S,S);try{res(c.toDataURL('image/jpeg',.72))}catch(e){res('')}};im.onerror=function(){res('')};im.src=src})}
+function avHash(s){s=s||'';return s.length+':'+s.slice(-24)}
+setInterval(async function(){if(!U.uid||!U.doc||BAN)return;var ph=U.doc.photo||'',h=avHash(ph),k='g_av_'+U.uid;try{if(localStorage.getItem(k)===h)return}catch(e){}
+ try{var t=await avThumb(ph);await setDoc(doc(db,'avatars',U.uid),{p:t,ts:new Date()});AVC[U.uid]=t;try{localStorage.setItem(k,h)}catch(e){}}catch(e){}},4000);
+function avGet(uid){if(uid in AVC||AVQ[uid])return;AVQ[uid]=1;getDoc(doc(db,'avatars',uid)).then(function(d){AVC[uid]=(d.exists()&&d.data().p)||'';delete AVQ[uid];clearTimeout(avGet.t);avGet.t=setTimeout(function(){if(AK==='grp')gR()},120)}).catch(function(){AVC[uid]='';delete AVQ[uid]})}
+var _gRA=gR;gR=function(){GMS.forEach(function(m){if(!m.a&&m.uid&&m.uid!==U.uid)avGet(m.uid)});_gRA();var box=$('gmsgs');if(!box)return;
+ box.querySelectorAll('.gav[data-u]').forEach(function(e){var p=AVC[e.getAttribute('data-u')];if(p&&!e.querySelector('img'))e.innerHTML='<img src="'+p+'" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block">'})};
 </script>
 </body>
 </html>

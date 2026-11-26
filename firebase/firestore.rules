@@ -144,6 +144,16 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    // ---- صور الأعضاء المصغّرة (للكروب) ----
+    match /avatars/{uid} {
+      allow read: if signedIn();
+      allow write: if own(uid)
+        && request.resource.data.keys().hasOnly(['p', 'ts'])
+        && request.resource.data.p is string
+        && request.resource.data.p.size() < 40000;
+      allow delete: if own(uid) || isAdmin();
+    }
+
     // ---- دردشة الدعم ----
     match /chats/{uid}/msgs/{id} {
       allow read: if own(uid) || isAdmin();
