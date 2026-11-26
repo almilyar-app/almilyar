@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head><script>(function(){var V="1795730205";try{fetch("version.json?nc="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.v||j.v===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===j.v)return;u.searchParams.set("v",j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<head><script>(function(){var V="1795731503";try{fetch("version.json?nc="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.v||j.v===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===j.v)return;u.searchParams.set("v",j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 <meta charset="utf-8">
 <title>المليار</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -1037,6 +1037,23 @@ A.gpinv=function(){A.ginfo()};
 A.gsend=async function(){var i=$('gin');if(!i)return;var t=(i.value||'').trim();if(!t&&!GIMG)return;if(t.length>500)return toast('الرسالة طويلة (500 حرف كحد أقصى)');if(Date.now()-gLast<3000)return toast('انتظر شوية قبل الرسالة الجاية');if(BAN)return;gLast=Date.now();var im=GIMG;i.value='';i.style.height='auto';GIMG='';var e=$('gemp');if(e)e.remove();if(im)gBar();
  var d={uid:U.uid,n:(U.doc&&U.doc.name)||ME.name,mid:ME.id||'',t:t,ts:serverTimestamp()};if(im)d.img=im;
  try{await addDoc(collection(db,'group'),d)}catch(x){GIMG=im;gBar();if($('gin'))$('gin').value=t;toast(x.code==='permission-denied'?'ما تكدر تكتب بالكروب حالياً':eMsg(x))}};
+
+/* ===== علامة رسائل الكروب الجديدة ===== */
+var gBgUn=null,gBgUid=null,GUNR=0;
+(function(){var st=document.createElement('style');st.textContent='nav button{position:relative}.gnb{position:absolute;top:2px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:#e53935;color:#fff;font-size:11px;font-weight:800;line-height:18px;text-align:center;border:2px solid #0b0705;box-sizing:content-box;font-family:sans-serif;animation:gnbp 1.8s ease-in-out infinite}.gnb2{position:static;display:inline-block;margin-inline-start:auto;margin-inline-end:6px;animation:none;border-color:#1d120a}@keyframes gnbp{0%,100%{box-shadow:0 0 0 0 rgba(229,57,53,.55)}50%{box-shadow:0 0 0 5px rgba(229,57,53,0)}}';document.head.appendChild(st)})();
+function gSeenK(){return 'g_seen_'+(U.uid||'')}
+function gSeenG(){try{return +localStorage.getItem(gSeenK())||0}catch(e){return 0}}
+function gSeenS(t){try{if(t>gSeenG())localStorage.setItem(gSeenK(),String(t))}catch(e){}}
+function gMs(m){var t=m.ts;return t&&t.toMillis?t.toMillis():(t&&t.toDate?t.toDate().getTime():Date.now())}
+function gBadge(){var n=GON?GUNR:0,txt=n>99?'99+':String(n);var nb=document.querySelector('#nav [data-v="me"]');if(nb){var s=nb.querySelector('.gnb');if(n){if(!s){s=document.createElement('span');s.className='gnb';nb.appendChild(s)}s.textContent=txt}else if(s)s.remove()}
+ var r=document.querySelector('#amain [data-v="grp"]');if(r){var b=r.querySelector('.gnb');if(n){if(!b){b=document.createElement('span');b.className='gnb gnb2';var ch=r.querySelector('.ch');r.insertBefore(b,ch)}b.textContent=txt}else if(b)b.remove()}}
+function gBgStop(){if(gBgUn){try{gBgUn()}catch(e){}gBgUn=null}gBgUid=null;GUNR=0;gBadge()}
+function gBgStart(){gBgStop();gBgUid=U.uid;gBgUn=onSnapshot(query(collection(db,'group'),orderBy('ts','desc'),limit(30)),function(s){var L=s.docs.map(function(d){var x=d.data({serverTimestamps:'estimate'});x.id=d.id;return x});
+  if(AK==='grp'){if(L.length)gSeenS(gMs(L[0]));GUNR=0}else{var seen=gSeenG();GUNR=L.filter(function(m){return m.uid!==U.uid&&gMs(m)>seen}).length}gBadge()},function(){})}
+setInterval(function(){if(U.uid&&GON&&!BAN){if(gBgUid!==U.uid)gBgStart()}else if(gBgUid)gBgStop()},1500);
+var _asubB=asub;asub=function(k){var r=_asubB.apply(this,arguments);if(k==='grp'){var L=GMS;gSeenS(Date.now());GUNR=0;gBadge()}return r};
+var _gRB=gR;gR=function(){_gRB();if(AK==='grp'){gSeenS(Date.now());if(GUNR){GUNR=0;gBadge()}}};
+var _raccB=racc;racc=function(){_raccB();gBadge()};
 </script>
 </body>
 </html>
