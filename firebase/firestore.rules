@@ -129,10 +129,11 @@ service cloud.firestore {
       allow create: if isAdmin()
         || (signedIn()
             && request.resource.data.uid == request.auth.uid
-            && request.resource.data.keys().hasOnly(['uid', 'n', 'mid', 't', 'ts'])
+            && request.resource.data.keys().hasOnly(['uid', 'n', 'mid', 't', 'ts', 'img'])
             && request.resource.data.t is string
-            && request.resource.data.t.size() > 0
             && request.resource.data.t.size() <= 500
+            && (request.resource.data.t.size() > 0 || request.resource.data.get('img', '') != '')
+            && (!('img' in request.resource.data) || (request.resource.data.img is string && request.resource.data.img.size() < 150000))
             && request.resource.data.ts == request.time
             && request.resource.data.n == userDoc(request.auth.uid).name
             && userDoc(request.auth.uid).ban == false
