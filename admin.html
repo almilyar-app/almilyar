@@ -330,7 +330,10 @@ async function refRun(){if(refBusy||!ADMIN||!RAW.length)return;refBusy=true;try{
    t.set(doc(collection(db,'txs')),{uid:rf.id,t:'dep',n:'ربح إحالة '+pct+'% — '+(buyer.name||'')+' فعّل '+(s.name||'باقة'),a:'+'+fmt(a),s:'ok',l:'مضاف',ts:new Date()});return true});
    if(ok)ntx(rf.id,'ربح إحالة 🎉','انضاف '+fmt(a)+' د.ع لرصيدك لأن '+(buyer.name||'شخص دعوته')+' فعّل باقة');
    if(ok)log('ربح إحالة '+fmt(a)+' لـ '+(rf.name||'')+' من باقة '+(buyer.name||''))}catch(e){console.warn('ref',e)}}}
- var b=writeBatch(db),n=0;RAW.forEach(function(u){if(!u.rc)return;var c=RAW.filter(function(x){return x.refBy===u.rc&&x.id!==u.id}).length;if((u.refN||0)!==c&&n<400){b.update(doc(db,'users',u.id),{refN:c});n++}});if(n)await b.commit();
+ var b=writeBatch(db),n=0;RAW.forEach(function(u){if(!u.rc)return;var R=RAW.filter(function(x){return x.refBy===u.rc&&x.id!==u.id&&!x.del}),c=R.length;
+  var L=R.map(function(x){var ss=SUBS.filter(function(z){return z.uid===x.id});return {n:x.name||'—',j:tsm(x.joined)||0,a:ss.length?1:0,e:ss.reduce(function(t,z){return t+(z.ref&&z.ref.uid===u.id?(+z.ref.a||0):0)},0)}}).sort(function(p,q){return q.j-p.j});
+  var up={};if((u.refN||0)!==c)up.refN=c;var ck=function(A){return (A||[]).map(function(x){return [x.n,x.j,x.a,x.e].join('|')}).join('~')};if(ck(u.refL)!==ck(L))up.refL=L;
+  if(Object.keys(up).length&&n<400){b.update(doc(db,'users',u.id),up);n++}});if(n)await b.commit();
 }catch(e){console.warn('refRun',e)}refBusy=false}
 async function save(fn,okMsg){if(busy)return;busy=true;try{await fn();if(okMsg)toast(okMsg)}catch(e){console.error(e);toast(eMsg(e))}busy=false}
 
