@@ -566,6 +566,22 @@ A.gasend=function(){var t=($('gain').value||'').trim();if(!t)return toast('اك�
 A.gdel=function(v){save(function(){return deleteDoc(doc(db,'group',v))},'تم حذف الرسالة')};
 A.gmute=function(v){var u=RAW.find(function(x){return x.id===v});if(!u)return toast('المستخدم غير موجود');save(async function(){await updateDoc(doc(db,'users',v),{gMute:!u.gMute});log((u.gMute?'إلغاء كتم ':'كتم ')+(u.name||'')+' بالكروب');setTimeout(gaR,400)},u.gMute?'تم إلغاء الكتم':'تم الكتم 🔇')};
 
+/* ===== تذكير الأقساط المستحقة ===== */
+var DUEX=0;
+function dueList(maxD){var t0=new Date();t0.setHours(0,0,0,0);var R=[];USERS.forEach(function(u){(u.inv||[]).forEach(function(o){var m=Math.max(1,Math.round(o.days/30));if(o.paid>=m)return;var iv=o.days/m,st=new Date(o.start.getTime()+SET.delay*864e5),k=o.paid+1,due=new Date(st.getTime()+k*iv*864e5),d0=new Date(due);d0.setHours(0,0,0,0);var dl=Math.round((d0-t0)/864e5);if(dl>maxD)return;var tot=o.price*o.r*10/1000;R.push({u:u,o:o,k:k,m:m,due:due,dl:dl,a:Math.round((o.price+tot)/m)})})});return R.sort(function(a,b){return a.due-b.due})}
+function dueLbl(dl){return dl<0?'<span class="chip bad">متأخر '+(-dl)+' يوم</span>':dl===0?'<span class="chip bad">اليوم</span>':dl===1?'<span class="chip" style="background:rgba(216,178,90,.18);color:var(--g2)">باجر</span>':'<span class="chip">بعد '+dl+' أيام</span>'}
+function dueSec(){var near=dueList(1),wk=dueList(7),L=DUEX?wk:near,sum=near.reduce(function(t,x){return t+x.a},0);
+ return '<div class="h3">🔔 أقساط مستحقة الدفع</div><div class="card" style="padding:8px 12px">'+(near.length?'<div class="sub" style="margin:4px 2px 8px;line-height:1.7">عندك <b style="color:var(--g2)">'+near.length+'</b> قسط مستحق (اليوم/باجر/متأخر) — المجموع <b style="color:var(--g2)">'+fmt(sum)+' د.ع</b></div>':'<div class="sub" style="margin:4px 2px 8px">ماكو أقساط مستحقة اليوم أو باجر ✓</div>')
+ +L.map(function(x){return '<div class="lnk" data-a="uopen" data-v="'+x.u.id+'" style="margin:0 0 6px"><div class="av">'+x.u.n.charAt(0)+'</div><div class="sp"><b>'+esc(x.u.n)+' '+dueLbl(x.dl)+'</b><small>'+esc(x.o.name)+' · قسط '+x.k+' من '+x.m+' · '+dmy(x.due)+'</small></div><div style="text-align:left"><b style="color:var(--g2);font-size:14px">'+fmt(x.a)+'</b><div class="sub">د.ع</div></div></div>'}).join('')
+ +(wk.length>near.length||DUEX?'<button class="btn s g" style="margin-top:4px" data-a="duex">'+(DUEX?'عرض المستحق اليوم وباجر فقط':'عرض القادمة خلال 7 أيام ('+wk.length+')')+'</button>':'')+'<div class="sub" style="text-align:center;margin-top:6px">اضغط على المستخدم حتى تدفعله القسط</div></div>'}
+A.duex=function(){DUEX=DUEX?0:1;rHome()};
+var _rhD=rHome;rHome=function(){_rhD();var p=$('p_home');if(!p)return;var d=document.createElement('div');d.innerHTML=dueSec();var g=p.querySelector('.g2');if(g&&g.nextSibling)p.insertBefore(d,g.nextSibling);else p.appendChild(d);dueBadge();dueRemind()};
+function dueBadge(){var n=dueList(1).length,b=document.querySelector('#nav [data-v="home"]');if(!b)return;var s=b.querySelector('.bd');if(n){if(!s){s=document.createElement('span');s.className='bd';b.appendChild(s)}s.textContent=n}else if(s)s.remove()}
+var _rnD=rnav;rnav=function(){_rnD();try{dueBadge()}catch(e){}};
+function dueRemind(){if(!ADMIN||!SUBS.length)return;var near=dueList(1);if(!near.length)return;if($('ov')&&$('ov').classList.contains('on'))return;var k='adm_due_'+new Date().toDateString();try{if((+localStorage.getItem(k)||0)>=near.length)return;localStorage.setItem(k,near.length)}catch(e){}
+ var tm=near.filter(function(x){return x.dl===1}),td=near.filter(function(x){return x.dl<=0});
+ sheet('<h3>🔔 تذكير بالدفع</h3><div class="emp" style="padding:6px;line-height:1.9;text-align:right">'+(td.length?'<b style="color:var(--bad)">مستحق اليوم أو متأخر ('+td.length+'):</b><br>'+td.map(function(x){return '• '+esc(x.u.n)+' — '+fmt(x.a)+' د.ع ('+esc(x.o.name)+')'}).join('<br>')+'<br>':'')+(tm.length?'<b style="color:var(--g2)">مستحق باجر ('+tm.length+'):</b><br>'+tm.map(function(x){return '• '+esc(x.u.n)+' — '+fmt(x.a)+' د.ع ('+esc(x.o.name)+')'}).join('<br>'):'')+'</div><button class="btn" data-a="ovc">تمام</button>')}
+
 rall();
 
 </script></body></html>
