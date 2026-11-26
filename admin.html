@@ -272,9 +272,12 @@ rall();
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import{getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,reauthenticateWithCredential,EmailAuthProvider,updatePassword}from"https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-import{getFirestore,doc,getDoc,setDoc,updateDoc,deleteDoc,addDoc,collection,query,orderBy,onSnapshot,writeBatch,increment,runTransaction}from"https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import{getFirestore,doc,getDoc,setDoc,updateDoc,deleteDoc,addDoc,collection,query,orderBy,onSnapshot,writeBatch,increment,runTransaction,getDocs,limit}from"https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 const app=initializeApp({apiKey:"AIzaSyAEMn9ru2WHK_Po4Hgt8ZAZ3JZ02XaA91g",authDomain:"almilyar-app.firebaseapp.com",projectId:"almilyar-app",storageBucket:"almilyar-app.firebasestorage.app",messagingSenderId:"85391615195",appId:"1:85391615195:web:00dedd46bf5c616e4798fe"});
 const auth=getAuth(app),db=getFirestore(app);
+function ntx(uid,t,m){if(uid)addDoc(collection(db,'notifs'),{uid:uid,t:t,m:m||'',ts:new Date()}).catch(function(e){console.warn('notif',e.code)})}
+// يضيف الإشعار بعد نجاح العملية فقط، وبشكل منفصل حتى ما يأثر على العملية نفسها
+function nt(b,uid,t,m){if(!uid)return;if(!b._nq){b._nq=[];var c=b.commit.bind(b);b.commit=function(){return c().then(function(r){b._nq.forEach(function(x){ntx(x[0],x[1],x[2])});return r})}}b._nq.push([uid,t,m])}
 const em=v=>v.includes('@')?v.trim():v.replace(/\D/g,'')+'@almilyar.app';
 const ts2d=t=>t&&t.toDate?t.toDate():(t instanceof Date?t:new Date(t||Date.now()));
 const tsm=t=>t&&t.toMillis?t.toMillis():(typeof t==='number'?t:0);
@@ -325,6 +328,7 @@ async function refRun(){if(refBusy||!ADMIN||!RAW.length)return;refBusy=true;try{
    t.update(sr,{ref:{uid:rf.id,a:a,pct:pct,ts:new Date()}});
    t.update(doc(db,'users',rf.id),{balance:increment(a),refE:increment(a)});
    t.set(doc(collection(db,'txs')),{uid:rf.id,t:'dep',n:'ربح إحالة '+pct+'% — '+(buyer.name||'')+' فعّل '+(s.name||'باقة'),a:'+'+fmt(a),s:'ok',l:'مضاف',ts:new Date()});return true});
+   if(ok)ntx(rf.id,'ربح إحالة 🎉','انضاف '+fmt(a)+' د.ع لرصيدك لأن '+(buyer.name||'شخص دعوته')+' فعّل باقة');
    if(ok)log('ربح إحالة '+fmt(a)+' لـ '+(rf.name||'')+' من باقة '+(buyer.name||''))}catch(e){console.warn('ref',e)}}}
  var b=writeBatch(db),n=0;RAW.forEach(function(u){if(!u.rc)return;var c=RAW.filter(function(x){return x.refBy===u.rc&&x.id!==u.id}).length;if((u.refN||0)!==c&&n<400){b.update(doc(db,'users',u.id),{refN:c});n++}});if(n)await b.commit();
 }catch(e){console.warn('refRun',e)}refBusy=false}
@@ -345,17 +349,18 @@ A.apw2=async function(){var o=$('o0').value,n=$('o1').value;if(!o)return toast('
 /* ===== الطلبات ===== */
 const LBL={ok:'مقبول',bad:'مرفوض'};
 A.dok=function(v){var x=DEP.find(function(d){return d.id===v});if(!x)return;var a=x.a;if(!a){a=+(($('ra'+v)||{}).value);if(!a)return toast('اكتب مبلغ الرصيد المضاف')}
- save(async function(){var b=writeBatch(db);b.update(doc(db,'deposits',v),{s:'ok',a:a,rev:new Date()});b.update(doc(db,'users',x.uid),{balance:increment(a)});b.update(doc(db,'txs',v),{s:'ok',l:'مقبول',a:'+'+fmt(a),n:'إيداع '+x.m});await b.commit();log('قبول إيداع '+x.m+' · '+fmt(a)+' ('+x.u+')')},'تم القبول وإضافة الرصيد ✅')};
-A.wprog=function(v){var x=WD.find(function(d){return d.id===v});save(async function(){var b=writeBatch(db);b.update(doc(db,'withdrawals',v),{s:'prog'});b.update(doc(db,'txs',v),{l:'قيد التنفيذ'});await b.commit()},'الطلب قيد التنفيذ')};
-A.wok=function(v){var x=WD.find(function(d){return d.id===v});save(async function(){var b=writeBatch(db);b.update(doc(db,'withdrawals',v),{s:'ok'});b.update(doc(db,'txs',v),{s:'ok',l:'مكتمل'});await b.commit();log('تم تحويل سحب '+fmt(x.a)+' ('+x.u+')')},'تم تسجيل التحويل ✅')};
-A.ook=function(v){var x=ORD.find(function(d){return d.id===v});save(async function(){var b=writeBatch(db);b.update(doc(db,'orders',v),{s:'ok'});b.update(doc(db,'txs',v),{s:'ok',l:'مكتمل'});await b.commit();log('تم إرسال '+x.it+' ('+x.u+')')},'تم تسجيل الإرسال ✅')};
-A.kok=function(v){var x=KYCR.find(function(d){return d.id===v});save(async function(){var b=writeBatch(db);b.update(doc(db,'kycReqs',v),{s:'ok'});b.update(doc(db,'users',x.uid),{kyc:'ok'});await b.commit();log('توثيق حساب '+x.u)},'تم توثيق الحساب ✅')};
+ save(async function(){var b=writeBatch(db);b.update(doc(db,'deposits',v),{s:'ok',a:a,rev:new Date()});b.update(doc(db,'users',x.uid),{balance:increment(a)});b.update(doc(db,'txs',v),{s:'ok',l:'مقبول',a:'+'+fmt(a),n:'إيداع '+x.m});nt(b,x.uid,'تم قبول الإيداع ✅','انضاف '+fmt(a)+' د.ع لرصيدك عن طريق '+x.m);await b.commit();log('قبول إيداع '+x.m+' · '+fmt(a)+' ('+x.u+')')},'تم القبول وإضافة الرصيد ✅')};
+A.wprog=function(v){var x=WD.find(function(d){return d.id===v});save(async function(){var b=writeBatch(db);b.update(doc(db,'withdrawals',v),{s:'prog'});b.update(doc(db,'txs',v),{l:'قيد التنفيذ'});nt(b,x&&x.uid,'طلب السحب قيد التنفيذ ⏳','طلب سحب '+fmt(x?x.a:0)+' د.ع صار قيد التنفيذ');await b.commit()},'الطلب قيد التنفيذ')};
+A.wok=function(v){var x=WD.find(function(d){return d.id===v});save(async function(){var b=writeBatch(db);b.update(doc(db,'withdrawals',v),{s:'ok'});b.update(doc(db,'txs',v),{s:'ok',l:'مكتمل'});nt(b,x.uid,'تم تحويل السحب ✅','تم تحويل '+fmt(x.net||x.a)+' د.ع إلى حسابك');await b.commit();log('تم تحويل سحب '+fmt(x.a)+' ('+x.u+')')},'تم تسجيل التحويل ✅')};
+A.ook=function(v){var x=ORD.find(function(d){return d.id===v});save(async function(){var b=writeBatch(db);b.update(doc(db,'orders',v),{s:'ok'});b.update(doc(db,'txs',v),{s:'ok',l:'مكتمل'});nt(b,x.uid,'تم تنفيذ طلبك 🎁','تم إرسال '+x.it+' بنجاح');await b.commit();log('تم إرسال '+x.it+' ('+x.u+')')},'تم تسجيل الإرسال ✅')};
+A.kok=function(v){var x=KYCR.find(function(d){return d.id===v});save(async function(){var b=writeBatch(db);b.update(doc(db,'kycReqs',v),{s:'ok'});b.update(doc(db,'users',x.uid),{kyc:'ok'});nt(b,x.uid,'تم توثيق حسابك ✅','حسابك صار موثّق');await b.commit();log('توثيق حساب '+x.u)},'تم توثيق الحساب ✅')};
 A.rejok=function(v){var r=v.split(':'),k=r[0],id=r[1],why=($('rr')||{}).value||'';
  save(async function(){var b=writeBatch(db),x;
   if(k==='dep'){x=DEP.find(function(d){return d.id===id});b.update(doc(db,'deposits',id),{s:'bad',reason:why});b.update(doc(db,'txs',id),{s:'bad',l:'مرفوض'+(why?' — '+why:'')})}
   if(k==='wd'){x=WD.find(function(d){return d.id===id});b.update(doc(db,'withdrawals',id),{s:'bad',reason:why});b.update(doc(db,'users',x.uid),{balance:increment(x.a)});b.update(doc(db,'txs',id),{s:'bad',l:'مرفوض — أُعيد المبلغ'+(why?' · '+why:'')})}
   if(k==='ord'){x=ORD.find(function(d){return d.id===id});b.update(doc(db,'orders',id),{s:'bad',reason:why});b.update(doc(db,'users',x.uid),{balance:increment(x.p)});b.update(doc(db,'txs',id),{s:'bad',l:'مرفوض — أُعيد المبلغ'+(why?' · '+why:'')})}
   if(k==='kyc'){x=KYCR.find(function(d){return d.id===id});b.update(doc(db,'kycReqs',id),{s:'bad',reason:why});b.update(doc(db,'users',x.uid),{kyc:'none'})}
+  if(x)nt(b,x.uid,{dep:'تم رفض طلب الإيداع ❌',wd:'تم رفض طلب السحب ❌',ord:'تم رفض طلب المتجر ❌',kyc:'تم رفض طلب التوثيق ❌'}[k],(k==='wd'||k==='ord'?'رجع المبلغ لرصيدك. ':'')+(why?'السبب: '+why:''));
   await b.commit();closeS();log('رفض طلب ('+x.u+')'+(k==='wd'||k==='ord'?' وإرجاع المبلغ':''))},'تم الرفض'+(k==='wd'||k==='ord'?' وإرجاع المبلغ':''))};
 function log(t){ACT.unshift({t:t,d:nowS()});ACT=ACT.slice(0,30)}
 
@@ -364,9 +369,9 @@ invh=function(u){var L=(u.inv||[]).map(function(o){var c=CATS.find(function(x){r
  return '<div class="card" style="padding:12px 14px"><div class="row"><div class="ic">'+IC.pk+'</div><div class="sp"><b>'+o.name+'</b><div class="sub">فئة '+c.n+' · قسط '+o.paid+' من '+m+(o.fin?' · منتهية':'')+'</div></div></div><div style="margin-top:6px">'+kvs([['مبلغ الباقة',fmt(o.price)+' د.ع'],['إجمالي الأرباح',fmt(tot)+' د.ع'],['القسط الشهري (رأس مال + ربح)',fmt(mo)+' د.ع'],['المدفوع له',fmt(mo*o.paid)+' د.ع'],['تاريخ الشراء',dmy(o.start)],['بدء العد',dmy(st)],['تنتهي',dmy(en)],['المدة المتبقية',left?left+' يوم':'منتهية']])+'</div>'+(done?'<div class="sub" style="text-align:center;margin-top:6px">كل الأقساط مدفوعة ✓</div>':'<button class="btn s" style="margin-top:8px" data-a="inst" data-v="'+u.id+':'+o.sid+'">دفع القسط '+(o.paid+1)+' ('+fmt(mo)+' د.ع)</button>')+'</div>'}).join('');
  return '<div class="h3" style="margin:12px 4px 6px;font-size:15.5px">الباقات ('+(u.inv||[]).length+')</div>'+(L||'<div class="emp" style="padding:12px">لا توجد باقات</div>')};
 A.inst=function(v){var r=v.split(':'),u=USERS.find(function(x){return x.id===r[0]}),o=u&&u.inv.find(function(s){return s.sid===r[1]});if(!o)return;var m=Math.max(1,Math.round(o.days/30)),tot=o.price*o.r*10/1000,a=Math.round((o.price+tot)/m);if(o.paid>=m)return toast('كل الأقساط مدفوعة');
- save(async function(){var b=writeBatch(db);b.update(doc(db,'subs',o.sid),{paid:o.paid+1});b.update(doc(db,'users',u.id),{balance:increment(a)});b.set(doc(collection(db,'txs')),{uid:u.id,t:'inv',n:'قسط شهري '+o.name,a:'+'+fmt(a),s:'ok',l:'مدفوع',ts:new Date()});await b.commit();log('دفع القسط '+(o.paid+1)+' لـ '+u.n);setTimeout(function(){A.uopen(u.id)},350)},'تم دفع القسط للمستخدم ✅')};
+ save(async function(){var b=writeBatch(db);b.update(doc(db,'subs',o.sid),{paid:o.paid+1});b.update(doc(db,'users',u.id),{balance:increment(a)});b.set(doc(collection(db,'txs')),{uid:u.id,t:'inv',n:'قسط شهري '+o.name,a:'+'+fmt(a),s:'ok',l:'مدفوع',ts:new Date()});nt(b,u.id,'وصلتك دفعة 💰','انضاف '+fmt(a)+' د.ع لرصيدك — قسط '+(o.paid+1)+' من '+m+' لـ '+o.name);await b.commit();log('دفع القسط '+(o.paid+1)+' لـ '+u.n);setTimeout(function(){A.uopen(u.id)},350)},'تم دفع القسط للمستخدم ✅')};
 A.uadd=function(v){var r=v.split(':'),u=USERS.find(function(x){return x.id===r[0]}),n=Math.round(+$('ua').value),sg=+r[1];if(!n)return toast('اكتب المبلغ');if(sg===-1&&n>u.b)return toast('المبلغ أكبر من رصيده');
- save(async function(){var b=writeBatch(db);b.update(doc(db,'users',u.id),{balance:increment(n*sg)});b.set(doc(collection(db,'txs')),{uid:u.id,t:sg===1?'dep':'wd',n:sg===1?'إضافة رصيد من الإدارة':'خصم رصيد من الإدارة',a:(sg===1?'+':'-')+fmt(n),s:'ok',l:sg===1?'مقبول':'مكتمل',ts:new Date()});await b.commit();closeS();log((sg===1?'إضافة ':'خصم ')+fmt(n)+' '+(sg===1?'إلى':'من')+' رصيد '+u.n)},'تم التعديل ✅')};
+ save(async function(){var b=writeBatch(db);b.update(doc(db,'users',u.id),{balance:increment(n*sg)});b.set(doc(collection(db,'txs')),{uid:u.id,t:sg===1?'dep':'wd',n:sg===1?'إضافة رصيد من الإدارة':'خصم رصيد من الإدارة',a:(sg===1?'+':'-')+fmt(n),s:'ok',l:sg===1?'مقبول':'مكتمل',ts:new Date()});nt(b,u.id,sg===1?'انضاف رصيد لحسابك 💰':'تم خصم رصيد من حسابك',(sg===1?'انضاف ':'انخصم ')+fmt(n)+' د.ع من قبل الإدارة');await b.commit();closeS();log((sg===1?'إضافة ':'خصم ')+fmt(n)+' '+(sg===1?'إلى':'من')+' رصيد '+u.n)},'تم التعديل ✅')};
 A.uban=function(v){var u=USERS.find(function(x){return x.id===v});save(async function(){await updateDoc(doc(db,'users',v),{ban:!u.ban});closeS();log((u.ban?'إلغاء حظر ':'حظر ')+u.n)},u.ban?'تم إلغاء الحظر':'تم الحظر')};
 var _uo=A.uopen;A.uopen=function(v){_uo(v);var u=USERS.find(function(x){return x.id===v});if(u&&u.mid){var k=document.querySelector('#sh .kv b');}};
 
@@ -492,6 +497,21 @@ var _rs4=rSet;rSet=function(){_rs4();var p=$('p_set'),ch=[].slice.call(p.childre
  if(SSEC<0||!SGR[SSEC]){p.innerHTML='<div class="sg">'+SGR.map(function(g,i){return '<div class="stl" data-a="ssec" data-v="'+i+'"><div class="e">'+g[0]+'</div><b>'+g[1]+'</b><small>'+g[3]+'</small></div>'}).join('')+'</div>';return}
  var back=document.createElement('div');back.innerHTML='<button class="btn g" data-a="sbk" style="margin-bottom:4px">‹ رجوع للإعدادات</button><div class="h3" style="margin-top:12px">'+SGR[SSEC][0]+' '+SGR[SSEC][1]+'</div>';p.appendChild(back);
  G[SSEC].forEach(function(c){p.appendChild(c)})};
+
+/* ===== الإشعارات ===== */
+function esc(t){return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')}
+var _rhN=rHome;rHome=function(){_rhN();var p=$('p_home');if(!p)return;var d=document.createElement('div');
+ d.innerHTML='<div class="h3">الإشعارات</div><div class="lnk" data-a="ntf" data-v=""><div class="ic">📣</div><div class="sp"><b>إرسال إشعار</b><small>للكل أو لمستخدم واحد</small></div><span class="ch">‹</span></div><div class="lnk" data-a="ntl"><div class="ic">🔔</div><div class="sp"><b>الإشعارات المرسلة</b><small>آخر الإشعارات اللي دزّيتها يدوياً</small></div><span class="ch">‹</span></div>';
+ var h=p.querySelector('.h3');if(h)p.insertBefore(d,h);else p.appendChild(d)};
+A.ntf=function(v){var opts='<option value="all">📢 كل المستخدمين</option>'+USERS.map(function(u){return '<option value="'+u.id+'"'+(u.id===v?' selected':'')+'>'+esc(u.n)+(u.ph?' · '+esc(u.ph):'')+'</option>'}).join('');
+ sheet('<h3>إرسال إشعار</h3><label class="fl">إلى</label><select id="nto">'+opts+'</select><label class="fl">العنوان</label><input id="ntt" maxlength="60" placeholder="مثال: عرض جديد 🎉"><label class="fl">النص</label><textarea id="ntm" rows="4" maxlength="400" placeholder="اكتب نص الإشعار"></textarea><button class="btn" data-a="ntf2">إرسال</button><button class="btn g" style="margin-top:8px" data-a="ovc">إلغاء</button>')};
+A.ntf2=function(){var to=$('nto').value,t=($('ntt').value||'').trim(),m=($('ntm').value||'').trim();if(!t)return toast('اكتب عنوان الإشعار');
+ save(async function(){await addDoc(collection(db,'notifs'),{uid:to,t:t,m:m,ts:new Date(),man:1});closeS();log('إشعار '+(to==='all'?'للكل':'لـ '+nameOf(to))+': '+t)},'تم إرسال الإشعار ✅')};
+A.ntl=function(){sheet('<h3>الإشعارات المرسلة</h3><div class="emp">جاري التحميل...</div>');
+ getDocs(query(collection(db,'notifs'),orderBy('ts','desc'),limit(80))).then(function(q){var L=q.docs.map(function(d){var x=d.data();x.id=d.id;return x}).filter(function(x){return x.man}).slice(0,30);
+  $('sh').innerHTML='<h3>الإشعارات المرسلة</h3>'+(L.map(function(x){return '<div class="card" style="padding:12px 14px"><div class="row"><div class="sp"><b>'+esc(x.t)+'</b><div class="sub">'+(x.uid==='all'?'📢 للكل':'👤 '+esc(nameOf(x.uid)))+' · '+tstr(x.ts)+'</div></div><button class="btn s r" style="width:auto;padding:7px 14px" data-a="ntd" data-v="'+x.id+'">حذف</button></div>'+(x.m?'<div class="sub" style="margin-top:6px;line-height:1.7">'+esc(x.m)+'</div>':'')+'</div>'}).join('')||'<div class="emp">ما دزّيت إشعارات بعد</div>')+'<button class="btn g" style="margin-top:8px" data-a="ovc">إغلاق</button>'}).catch(function(e){toast(eMsg(e))})};
+A.ntd=function(v){save(async function(){await deleteDoc(doc(db,'notifs',v));A.ntl()},'تم حذف الإشعار')};
+var _uoN=A.uopen;A.uopen=function(v){_uoN(v);var sh=$('sh');if(!sh||sh.querySelector('[data-a="ntf"]'))return;var b=document.createElement('button');b.className='btn g';b.style.marginTop='8px';b.setAttribute('data-a','ntf');b.setAttribute('data-v',v);b.textContent='🔔 إرسال إشعار له';sh.appendChild(b)};
 
 rall();
 

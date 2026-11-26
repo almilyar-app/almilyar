@@ -117,6 +117,12 @@ service cloud.firestore {
       allow update: if isAdmin();
     }
 
+    // ---- الإشعارات (uid = رقم المستخدم، أو 'all' للكل) ----
+    match /notifs/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || resource.data.uid == 'all' || isAdmin());
+      allow write: if isAdmin();
+    }
+
     // ---- دردشة الدعم ----
     match /chats/{uid}/msgs/{id} {
       allow read: if own(uid) || isAdmin();

@@ -455,7 +455,7 @@ init();
 
  <section class="page on" id="home">
   <div class="hhead"><div class="htitle"><b>المليار</b><small>للاستثمار الإلكتروني</small></div>
-   <div class="hbtns"><button class="ib a-head" data-a="sh" data-v="sup" aria-label="الدعم الفني"></button><button class="ib a-bell" data-a="toast" data-v="لا توجد إشعارات جديدة" aria-label="الإشعارات"></button></div></div>
+   <div class="hbtns"><button class="ib a-head" data-a="sh" data-v="sup" aria-label="الدعم الفني"></button><button class="ib a-bell" data-a="nts" aria-label="الإشعارات"><span class="nbd" id="nbd"></span></button></div></div>
   <div id="wtk"></div>
   <div class="bc">
    <svg viewBox="0 0 800 445" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3c2"/><stop offset=".5" stop-color="#e6b85c"/><stop offset="1" stop-color="#a8742a"/></linearGradient></defs>
@@ -808,7 +808,7 @@ A.ctset=function(v){if(v==='refoff'||v==='refon'){REFON=v==='refon'?1:0;$('sheet
  $('sheet').classList.remove('on');go('home');render();if(v==='full')toast('التسجيل مغلق — يطلع للشخص 11 «العدد مكتمل»')}
 rct();rann();
 </script>
-<style>.a-head{position:relative}.a-head.udot::after{content:'';position:absolute;top:3px;right:3px;width:13px;height:13px;border-radius:50%;background:#e53935;border:2px solid #1d0f07;box-shadow:0 0 6px rgba(229,57,53,.8)}</style><style>#abox input::placeholder{color:#cdbb9f;opacity:1}</style><div id="auth" style="position:fixed;inset:0;z-index:95;background:linear-gradient(160deg,#4a2e1d,#1d0f07);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:max(30px,env(safe-area-inset-top)) 22px 40px"><div id="abox" style="width:100%;max-width:400px;margin:auto 0;padding-top:20px"></div></div>
+<style>.a-bell{position:relative}.nbd{display:none;position:absolute;top:0;right:0;min-width:20px;height:20px;padding:0 5px;border-radius:99px;background:#e53935;color:#fff;font-size:12px;font-weight:800;line-height:20px;text-align:center;border:2px solid #1d0f07;box-sizing:content-box;font-family:sans-serif}.nbd.on{display:block}.ntc{border:1px solid rgba(216,178,90,.35);border-radius:16px;padding:12px 14px;margin-bottom:10px;background:linear-gradient(160deg,rgba(255,255,255,.05),rgba(0,0,0,.2))}.ntc.new{border-color:#e8c46b;box-shadow:0 0 0 1px rgba(232,196,107,.35)}.ntc b{display:block;color:#f6e8c8;font-size:15px}.ntc p{margin:6px 0 0;color:#e2d3b8;font-size:14px;line-height:1.7;white-space:pre-wrap}.ntc small{display:block;margin-top:6px;color:#a8977d;font-size:12px}</style><style>.a-head{position:relative}.a-head.udot::after{content:'';position:absolute;top:3px;right:3px;width:13px;height:13px;border-radius:50%;background:#e53935;border:2px solid #1d0f07;box-shadow:0 0 6px rgba(229,57,53,.8)}</style><style>#abox input::placeholder{color:#cdbb9f;opacity:1}</style><div id="auth" style="position:fixed;inset:0;z-index:95;background:linear-gradient(160deg,#4a2e1d,#1d0f07);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:max(30px,env(safe-area-inset-top)) 22px 40px"><div id="abox" style="width:100%;max-width:400px;margin:auto 0;padding-top:20px"></div></div>
 <script type="module">
 let KYCWD=true,MAXINV=0,INVN=0,STATS_OK=false;
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
@@ -940,6 +940,24 @@ var _as=asub;asub=function(k){
 var _rr0=render;render=function(){_rr0();var h=$('hnm');if(h&&ME.name)h.textContent=ME.name};
 window.addEventListener('online',function(){toast('عاد الاتصال بالإنترنت')});
 window.addEventListener('offline',function(){toast('لا يوجد اتصال بالإنترنت')});
+/* ===== الإشعارات (الجرس) ===== */
+var NT_U=[],NT_A=[],NTF=[];
+function _ntK(){return 'nts_'+(U.uid||'')}
+function _ntG(){try{return +localStorage.getItem(_ntK())||0}catch(e){return 0}}
+function _ntS(v){try{localStorage.setItem(_ntK(),String(v))}catch(e){}}
+function _ntE(t){return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function ntMerge(){var j=U.doc&&U.doc.joined?tsm(U.doc.joined)||ts2d(U.doc.joined).getTime():0;
+ NTF=NT_U.concat(NT_A.filter(function(x){return !j||x._t>=j-864e5})).sort(function(a,b){return b._t-a._t});ntBadge()}
+function ntBadge(){var b=$('nbd');if(!b)return;var sn=_ntG(),n=U.uid?NTF.filter(function(x){return x._t>sn}).length:0;b.textContent=n>9?'9+':String(n);b.classList.toggle('on',n>0)}
+function ntMap(s){return s.docs.map(function(d){var x=d.data();return {id:d.id,t:x.t||'',m:x.m||'',_t:tsm(x.ts)}})}
+var _lsN=listen;listen=function(){_lsN();
+ un.push(onSnapshot(query(collection(db,'notifs'),where('uid','==',U.uid)),function(s){NT_U=ntMap(s);ntMerge()},function(e){console.warn('notifs',e.code)}));
+ un.push(onSnapshot(query(collection(db,'notifs'),where('uid','==','all')),function(s){NT_A=ntMap(s);ntMerge()},function(e){console.warn('notifsAll',e.code)}));setTimeout(ntMerge,4000)};
+A.nts=function(){ntMerge();var sn=_ntG(),L=NTF.slice(0,50);
+ sheet('<h3>الإشعارات</h3>'+(L.length?L.map(function(x){return '<div class="ntc'+(x._t>sn?' new':'')+'"><b>'+_ntE(x.t)+'</b>'+(x.m?'<p>'+_ntE(x.m)+'</p>':'')+'<small>'+(x._t?fdl(new Date(x._t)):'')+'</small></div>'}).join(''):'<div style="text-align:center;color:#cdbb9f;padding:24px 0">لا توجد إشعارات بعد</div>'));
+ if(NTF.length)_ntS(Math.max(sn,NTF[0]._t));ntBadge()};
+var _stopN=stopListen;stopListen=function(){_stopN();NT_U=[];NT_A=[];NTF=[];ntBadge()};
+
 /* ===== نقطة حمراء على السماعة عند رد الإدارة ===== */
 var _LA=0;
 function _seenK(){return 'chs_'+(U.uid||'')}
