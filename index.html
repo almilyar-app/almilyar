@@ -808,7 +808,7 @@ A.ctset=function(v){if(v==='refoff'||v==='refon'){REFON=v==='refon'?1:0;$('sheet
  $('sheet').classList.remove('on');go('home');render();if(v==='full')toast('التسجيل مغلق — يطلع للشخص 11 «العدد مكتمل»')}
 rct();rann();
 </script>
-<div id="auth" style="position:fixed;inset:0;z-index:95;background:linear-gradient(160deg,#4a2e1d,#1d0f07);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:max(30px,env(safe-area-inset-top)) 22px 40px"><div id="abox" style="width:100%;max-width:400px;margin:auto 0;padding-top:20px"></div></div>
+<style>#abox input::placeholder{color:#cdbb9f;opacity:1}</style><div id="auth" style="position:fixed;inset:0;z-index:95;background:linear-gradient(160deg,#4a2e1d,#1d0f07);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:max(30px,env(safe-area-inset-top)) 22px 40px"><div id="abox" style="width:100%;max-width:400px;margin:auto 0;padding-top:20px"></div></div>
 <script type="module">
 let KYCWD=true,MAXINV=0,INVN=0,STATS_OK=false;
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
@@ -862,7 +862,8 @@ function rauth(){var reg=AM==='up',rf=(new URLSearchParams(location.search).get(
  +'<input id="ap" type="tel" inputmode="numeric" dir="ltr" placeholder="رقم الهاتف" style="text-align:left" autocomplete="tel">'
  +'<input id="aw" type="password" placeholder="كلمة المرور" autocomplete="'+(reg?'new-password':'current-password')+'">'
  +(reg?'<input id="aw2" type="password" placeholder="تأكيد كلمة المرور" autocomplete="new-password">'+(REFON?'<input id="ar" dir="ltr" placeholder="كود الإحالة (اختياري)" value="'+rf+'" style="text-align:left">':''):'')
- +'<button class="btn" data-a="asubmit" id="asb">'+(reg?'إنشاء الحساب':'دخول')+'</button>'}
+ +'<button class="btn" data-a="asubmit" id="asb">'+(reg?'إنشاء الحساب':'دخول')+'</button>'
+ +(reg?'':'<div style="text-align:center;margin-top:16px;font-size:14.5px;color:#cdbb9f">ليس لديك حساب؟ <button type="button" data-a="amode" data-v="up" style="background:none;border:0;padding:0;font:inherit;font-weight:700;color:#e8c46b;text-decoration:underline;cursor:pointer">إنشاء حساب جديد</button></div>')}
 A.amode=function(v){AM=v;rauth()};
 getDoc(doc(db,'config','sets')).then(function(s){var d=s.data()||{};REFON=d.refOn===false?0:1;if($('auth')&&$('auth').style.display!=='none'&&!($('ap')&&$('ap').value))rauth()}).catch(function(){});
 A.asubmit=async function(){if(busy)return;var p=($('ap').value||'').replace(/\D/g,''),w=$('aw').value,reg=AM==='up';
