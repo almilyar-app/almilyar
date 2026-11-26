@@ -774,7 +774,7 @@ function rct(){var tk=$('wtk'),c=$('ct');if(!tk||!c)return;tk.innerHTML='';
  +'<div class="ctd">'+dots+'</div>'
  +'<div class="cts"><div><small>المشتركون:</small><b>'+CT.P.length+' من '+CT.seats+'</b></div><i class="dv"></i><div><small>المطلوب:</small><span class="pl2">'+CT.seats+' مشتركين</span></div></div>';
  if(CT.prize)h+='<div class="pz" style="text-align:center">الجائزة: '+ctpz()+'</div>';
- if(m){h+='<div style="margin-top:8px"><small>مقعدك رقم '+(CT.me+1)+' · مستواك '+m.l+' من '+CT.need+'</small>'+ctpills(m.l)+(m.l>=CT.need?'<div class="qd">✅ تم التأهل للسحب</div>':'<small>ادعُ '+(CT.need-m.l)+' أشخاص (يودعون ويفعّلون أي باقة وتمر 3 أيام)</small>')+'</div>'}
+ if(m){h+='<div style="margin-top:8px"><small>مقعدك رقم '+(CT.me+1)+' · مستواك '+m.l+' من '+CT.need+'</small>'+ctpills(m.l)+(m.l>=CT.need?'<div class="qd">✅ تم التأهل للسحب</div>':'<small>ادعُ '+(CT.need-m.l)+' أشخاص (يودعون ويفعّلون أي باقة)</small>')+'</div>'}
  else h+=full?'':'<div class="ctm">وثّق حسابك وادعُ أصدقاءك برابطك — ما تحتاج تفعّل باقة. أول '+CT.seats+' يفعّل واحد من مدعويهم أي باقة يدخلون المسابقة.</div>';
  if(full)h+='<div class="cfull">العدد مكتمل</div>';
  h+=full?(m?'':'')+'<div class="ctm" style="margin-top:4px"><small>باقي '+ctleft()+' يوم لإكمال الإحالات</small></div>':'<div class="ctm" style="margin-top:4px"><small>باقي '+ctleft()+' يوم على انتهاء التسجيل</small></div>';
