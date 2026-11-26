@@ -291,7 +291,7 @@ USERS=[];DEP=[];WD=[];ORD=[];KYCR=[];METH=[];DEV=[];CATS=[];ITEMS=[];LINKS=[];ST
 CS.P=[];CS.on=0;CS.win=null;CS.excl=[];SET={delay:3,tgd:'',tg:0,tgid:'',fee:1,minw:10000,maxw:1000000,mind:100000,maxd:1000000,wa:''};SEC={ref:1};AN={on:0,title:'',badge:'',text:'',days:3,until:0};
 function rra(){if(rra.t)return;rra.t=requestAnimationFrame(function(){rra.t=0;try{rall()}catch(e){console.error(e)}})}
 const KE={'هاتف':'📱','رصيد':'💳','سيارة':'🚗'};
-function buildUsers(){USERS=RAW.map(function(u){var inv=SUBS.filter(function(s){return s.uid===u.id}).map(function(s){return {sid:s.id,name:s.name,price:s.price,r:s.r,days:s.days,cat:s.cat,start:ts2d(s.start),paid:s.paid||0,fin:!!s.fin}}).sort(function(a,b){return a.start-b.start});return {id:u.id,mid:u.mid||'',n:u.name||'—',ph:u.phone||'',b:u.balance||0,ban:u.ban?1:0,kyc:u.kyc==='ok'?'ok':u.kyc==='wait'?'wait':'no',j:u.joined?dmy(ts2d(u.joined)):'',inv:inv,rc:u.rc,refBy:u.refBy||''}}).sort(function(a,b){return a.n.localeCompare(b.n,'ar')})}
+function buildUsers(){USERS=RAW.filter(function(u){return !u.del}).map(function(u){var inv=SUBS.filter(function(s){return s.uid===u.id}).map(function(s){return {sid:s.id,name:s.name,price:s.price,r:s.r,days:s.days,cat:s.cat,start:ts2d(s.start),paid:s.paid||0,fin:!!s.fin}}).sort(function(a,b){return a.start-b.start});return {id:u.id,mid:u.mid||'',n:u.name||'—',ph:u.phone||'',b:u.balance||0,ban:u.ban?1:0,kyc:u.kyc==='ok'?'ok':u.kyc==='wait'?'wait':'no',j:u.joined?dmy(ts2d(u.joined)):'',inv:inv,rc:u.rc,refBy:u.refBy||''}}).sort(function(a,b){return a.n.localeCompare(b.n,'ar')})}
 function nameOf(uid){var u=RAW.find(function(x){return x.id===uid});return u?u.name:'—'}
 function listen(){
  var C=function(n,fn,ord){un.push(onSnapshot(collection(db,n),function(s){fn(s.docs.map(function(d){var x=d.data();x.id=d.id;return x}))},function(e){console.warn(n,e.code);if(e.code==='permission-denied')toast(eMsg(e))}))};
@@ -365,9 +365,14 @@ A.rejok=function(v){var r=v.split(':'),k=r[0],id=r[1],why=($('rr')||{}).value||'
 function log(t){ACT.unshift({t:t,d:nowS()});ACT=ACT.slice(0,30)}
 
 /* ===== المستخدمون ===== */
-invh=function(u){var L=(u.inv||[]).map(function(o){var c=CATS.find(function(x){return x.id===o.cat})||{n:'-'},m=Math.max(1,Math.round(o.days/30)),tot=o.price*o.r*10/1000,mo=(o.price+tot)/m,st=new Date(o.start.getTime()+SET.delay*864e5),en=new Date(st.getTime()+o.days*864e5),left=Math.max(0,Math.ceil((en-new Date())/864e5)),done=o.paid>=m;
- return '<div class="card" style="padding:12px 14px"><div class="row"><div class="ic">'+IC.pk+'</div><div class="sp"><b>'+o.name+'</b><div class="sub">فئة '+c.n+' · قسط '+o.paid+' من '+m+(o.fin?' · منتهية':'')+'</div></div></div><div style="margin-top:6px">'+kvs([['مبلغ الباقة',fmt(o.price)+' د.ع'],['إجمالي الأرباح',fmt(tot)+' د.ع'],['القسط الشهري (رأس مال + ربح)',fmt(mo)+' د.ع'],['المدفوع له',fmt(mo*o.paid)+' د.ع'],['تاريخ الشراء',dmy(o.start)],['بدء العد',dmy(st)],['تنتهي',dmy(en)],['المدة المتبقية',left?left+' يوم':'منتهية']])+'</div>'+(done?'<div class="sub" style="text-align:center;margin-top:6px">كل الأقساط مدفوعة ✓</div>':'<button class="btn s" style="margin-top:8px" data-a="inst" data-v="'+u.id+':'+o.sid+'">دفع القسط '+(o.paid+1)+' ('+fmt(mo)+' د.ع)</button>')+'</div>'}).join('');
- return '<div class="h3" style="margin:12px 4px 6px;font-size:15.5px">الباقات ('+(u.inv||[]).length+')</div>'+(L||'<div class="emp" style="padding:12px">لا توجد باقات</div>')};
+function invCard(u,o){var c=CATS.find(function(x){return x.id===o.cat})||{n:'-'},m=Math.max(1,Math.round(o.days/30)),tot=o.price*o.r*10/1000,mo=(o.price+tot)/m,st=new Date(o.start.getTime()+SET.delay*864e5),en=new Date(st.getTime()+o.days*864e5),left=Math.max(0,Math.ceil((en-new Date())/864e5)),done=o.paid>=m;
+ return '<div class="card" style="padding:12px 14px"><div class="row"><div class="ic">'+IC.pk+'</div><div class="sp"><b>'+o.name+'</b><div class="sub">فئة '+c.n+' · قسط '+o.paid+' من '+m+(o.fin?' · منتهية':'')+'</div></div></div><div style="margin-top:6px">'+kvs([['مبلغ الباقة',fmt(o.price)+' د.ع'],['إجمالي الأرباح',fmt(tot)+' د.ع'],['القسط الشهري (رأس مال + ربح)',fmt(mo)+' د.ع'],['المدفوع له',fmt(mo*o.paid)+' د.ع'],['تاريخ الشراء',dmy(o.start)],['بدء العد',dmy(st)],['تنتهي',dmy(en)],['المدة المتبقية',left?left+' يوم':'منتهية']])+'</div>'+(done?'<div class="sub" style="text-align:center;margin-top:6px">كل الأقساط مدفوعة ✓</div>':'<button class="btn s" style="margin-top:8px" data-a="inst" data-v="'+u.id+':'+o.sid+'">دفع القسط '+(o.paid+1)+' ('+fmt(mo)+' د.ع)</button>')+'</div>'}
+function invEnded(o){var m=Math.max(1,Math.round(o.days/30)),en=new Date(o.start.getTime()+(SET.delay+o.days)*864e5);return o.paid>=m&&(o.fin||en<=new Date())}
+invh=function(u){var all=u.inv||[],act=all.filter(function(o){return !invEnded(o)}),fin=all.filter(invEnded),hid=!!hidG().inv;
+ var h='<div class="h3" style="margin:12px 4px 6px;font-size:15.5px">الباقات الفعّالة ('+act.length+')</div>'+(act.map(function(o){return invCard(u,o)}).join('')||'<div class="emp" style="padding:12px">لا توجد باقات فعّالة</div>');
+ if(fin.length)h+='<div class="row" style="margin:12px 4px 6px"><div class="sp"><b style="font-size:15.5px">الباقات المنتهية ('+fin.length+')</b></div><button class="btn s g" style="width:auto;padding:6px 14px;margin:0" data-a="finv" data-v="'+u.id+'">'+(hid?'إظهار':'إخفاء')+'</button></div>'+(hid?'<div class="emp" style="padding:8px;font-size:13px">مخفية · تقدر تظهرها بأي وقت</div>':fin.map(function(o){return invCard(u,o)}).join(''));
+ return h};
+A.finv=function(v){var H=hidG();H.inv=!H.inv;hidS(H);A.uopen(v)};
 A.inst=function(v){var r=v.split(':'),u=USERS.find(function(x){return x.id===r[0]}),o=u&&u.inv.find(function(s){return s.sid===r[1]});if(!o)return;var m=Math.max(1,Math.round(o.days/30)),tot=o.price*o.r*10/1000,a=Math.round((o.price+tot)/m);if(o.paid>=m)return toast('كل الأقساط مدفوعة');
  save(async function(){var b=writeBatch(db);b.update(doc(db,'subs',o.sid),{paid:o.paid+1});b.update(doc(db,'users',u.id),{balance:increment(a)});b.set(doc(collection(db,'txs')),{uid:u.id,t:'inv',n:'قسط شهري '+o.name,a:'+'+fmt(a),s:'ok',l:'مدفوع',ts:new Date()});nt(b,u.id,'وصلتك دفعة 💰','انضاف '+fmt(a)+' د.ع لرصيدك — قسط '+(o.paid+1)+' من '+m+' لـ '+o.name);await b.commit();log('دفع القسط '+(o.paid+1)+' لـ '+u.n);setTimeout(function(){A.uopen(u.id)},350)},'تم دفع القسط للمستخدم ✅')};
 A.uadd=function(v){var r=v.split(':'),u=USERS.find(function(x){return x.id===r[0]}),n=Math.round(+$('ua').value),sg=+r[1];if(!n)return toast('اكتب المبلغ');if(sg===-1&&n>u.b)return toast('المبلغ أكبر من رصيده');
@@ -444,7 +449,7 @@ async function csCalc(auto){if(csBusy)return;csBusy=true;try{var pc=CATS.find(fu
   var cur=CS.P.map(function(p){return p.uid}),seat=CS.P.reduce(function(m,p){return Math.max(m,p.seat||0)},0);
   var claim={};RAW.forEach(function(x){if(!x.refBy||!first[x.id]||first[x.id]<(CS.startAt-0))return;var r=RAW.find(function(u){return u.rc===x.refBy&&u.id!==x.id});if(r&&(!claim[r.id]||first[x.id]<claim[r.id]))claim[r.id]=first[x.id]});
   /* المشارك ما يحتاج باقة: موثّق + أول مدعو فعّل أي باقة بعد بدء الجولة */
-  var cands=RAW.filter(function(u){return u.kyc==='ok'&&claim[u.id]&&exc.indexOf(u.id)<0&&cur.indexOf(u.id)<0}).sort(function(a,b){return claim[a.id]-claim[b.id]});
+  var cands=RAW.filter(function(u){return !u.del&&u.kyc==='ok'&&claim[u.id]&&exc.indexOf(u.id)<0&&cur.indexOf(u.id)<0}).sort(function(a,b){return claim[a.id]-claim[b.id]});
   var parts=CS.P.map(function(p){return {uid:p.uid,seat:p.seat}});cands.forEach(function(u){if(parts.length<CS.seats)parts.push({uid:u.id,seat:++seat})});
   var ops=[];parts.forEach(function(p){var u=RAW.find(function(x){return x.id===p.uid});if(!u)return;var cnt=RAW.filter(function(x){return x.refBy&&x.refBy===u.rc&&x.id!==u.id&&depOk[x.id]&&first[x.id]}).length;var nm=sname(u.name),lv=Math.min(CS.need,cnt),ex=CS.P.find(function(q){return q.uid===p.uid});if(auto&&ex&&ex.n===nm&&ex.l===lv&&ex.seat===p.seat)return;ops.push(function(b){b.set(doc(db,'contestP',p.uid),{uid:p.uid,n:nm,l:lv,seat:p.seat})})});
   RAW.forEach(function(u){var n=RAW.filter(function(x){return x.refBy&&x.refBy===u.rc&&x.id!==u.id}).length;if((u.refN||0)!==n)ops.push(function(b){b.update(doc(db,'users',u.id),{refN:n})})});
@@ -527,6 +532,18 @@ var _rrH=rReq;rReq=function(){var H=hidG(),o={DEP:DEP,WD:WD,ORD:ORD,KYCR:KYCR,CO
  try{if(H.dep)DEP=DEP.filter(keep);if(H.wd)WD=WD.filter(keep);if(H.ord)ORD=ORD.filter(keep);if(H.kyc)KYCR=KYCR.filter(keep);if(H.msg)CONV=(CONV||[]).filter(function(c){return c.unread});_rrH()}
  finally{DEP=o.DEP;WD=o.WD;ORD=o.ORD;KYCR=o.KYCR;CONV=o.CONV}
  if(H[RT]){var n=hidN(RT);if(n){var d=document.createElement('div');d.className='emp';d.style.cssText='padding:10px;font-size:13px';d.innerHTML=n+' منتهية مخفية · <b data-a="hdt" data-v="'+RT+'" style="color:var(--g2);cursor:pointer;text-decoration:underline">إظهار</b>';$('p_req').appendChild(d)}}};
+
+/* ===== حذف المستخدم ===== */
+var _uoD=A.uopen;A.uopen=function(v){_uoD(v);var sh=$('sh');if(!sh||sh.querySelector('[data-a="udel"]'))return;var b=document.createElement('button');b.className='btn r';b.style.marginTop='8px';b.setAttribute('data-a','udel');b.setAttribute('data-v',v);b.textContent='🗑 حذف المستخدم';sh.appendChild(b)};
+A.udel=function(v){var u=USERS.find(function(x){return x.id===v});if(!u)return;var act=(u.inv||[]).filter(function(o){return !invEnded(o)}).length;
+ sheet('<h3>حذف '+u.n+'؟</h3><div class="emp" style="padding:6px;line-height:1.9;text-align:right">إذا كملت راح:<br>• ينحذف المستخدم من القائمة ويطلع من التطبيق فوراً، وما يكدر يدخل بعد<br>• تنحذف كل باقاته ('+(u.inv||[]).length+')'+(act?' منها <b style="color:var(--bad)">'+act+' فعّالة</b>':'')+'<br>• يتصفّر رصيده (حالياً '+fmt(u.b)+' د.ع)<br>• ينفتح مكانه بعدد المستثمرين<br><b style="color:var(--bad)">ما يمكن التراجع عن هذا.</b> إذا تريد توقفه مؤقتاً استعمل الحظر.</div><button class="btn r" data-a="udelf" data-v="'+v+'">نعم، احذف نهائياً</button><button class="btn g" style="margin-top:8px" data-a="ovc">إلغاء</button>')};
+A.udelf=function(v){var u=USERS.find(function(x){return x.id===v});if(!u)return;var subs=SUBS.filter(function(s){return s.uid===v});
+ save(async function(){var inv=false;try{inv=(await getDoc(doc(db,'investors',v))).exists()}catch(e){}
+  var ops=subs.map(function(s){return function(b){b.delete(doc(db,'subs',s.id))}});
+  if(inv)ops.push(function(b){b.delete(doc(db,'investors',v));b.update(doc(db,'config','stats'),{n:increment(-1)})});
+  ops.push(function(b){b.update(doc(db,'users',v),{del:true,ban:true,balance:0,delAt:new Date()})});
+  for(var i=0;i<ops.length;i+=400){var b=writeBatch(db);ops.slice(i,i+400).forEach(function(f){f(b)});await b.commit()}
+  closeS();log('حذف المستخدم '+u.n)},'تم حذف المستخدم 🗑')};
 
 rall();
 
