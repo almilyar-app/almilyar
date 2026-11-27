@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head><script>(function(){var V="1795787540";try{fetch("version.json?nc="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.v||j.v===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===j.v)return;u.searchParams.set("v",j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<head><script>(function(){var V="1795787740";try{fetch("version.json?nc="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.v||j.v===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===j.v)return;u.searchParams.set("v",j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 <meta charset="utf-8">
 <title>المليار</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -1067,8 +1067,8 @@ var _gRA=gR;gR=function(){GMS.forEach(function(m){if(!m.a&&m.uid&&m.uid!==U.uid)
 
 /* ===== شارة التوثيق بالكروب (أخضر = موثق، أحمر = غير موثق) ===== */
 var KYCV={},KYCV_OK=false,kvUn=null,kvUid=null;
-(function(){var st=document.createElement('style');st.textContent='.gvb{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;flex-shrink:0;font-size:11px;font-weight:900;line-height:1;color:#fff;font-family:sans-serif}.gvb.ok{background:#2fbf5b;box-shadow:0 0 6px rgba(47,191,91,.55)}.gvb.no{background:#e04848;box-shadow:0 0 6px rgba(224,72,72,.45)}';document.head.appendChild(st)})();
-function gVB(uid){if(!KYCSH||!uid||!KYCV_OK)return '';return KYCV[uid]?'<span class="gvb ok" title="موثق">✓</span>':'<span class="gvb no" title="غير موثق">✕</span>'}
+(function(){var st=document.createElement('style');st.textContent='.gvb{display:block;flex-shrink:0;filter:drop-shadow(0 0 3px rgba(0,0,0,.35))}';document.head.appendChild(st)})();
+function gVB(uid){if(!KYCSH||!uid||!KYCV_OK)return '';return KYCV[uid]?'<svg class="gvb" viewBox="0 0 24 24" width="17" height="17" aria-label="موثق"><polygon points="12.00,1.40 15.29,4.05 19.50,4.50 19.95,8.71 22.60,12.00 19.95,15.29 19.50,19.50 15.29,19.95 12.00,22.60 8.71,19.95 4.50,19.50 4.05,15.29 1.40,12.00 4.05,8.71 4.50,4.50 8.71,4.05" fill="#22b357" stroke="#22b357" stroke-width="2.4" stroke-linejoin="round"/><path d="M7.6 12.3l3 3 5.8-6.2" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>':'<svg class="gvb" viewBox="0 0 24 24" width="17" height="17" aria-label="غير موثق"><polygon points="12.00,1.40 15.29,4.05 19.50,4.50 19.95,8.71 22.60,12.00 19.95,15.29 19.50,19.50 15.29,19.95 12.00,22.60 8.71,19.95 4.50,19.50 4.05,15.29 1.40,12.00 4.05,8.71 4.50,4.50 8.71,4.05" fill="#e23b3b" stroke="#e23b3b" stroke-width="2.4" stroke-linejoin="round"/><path d="M8.8 8.8l6.4 6.4M15.2 8.8l-6.4 6.4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/></svg>'}
 setInterval(function(){if(U.uid&&!BAN){if(kvUid!==U.uid){if(kvUn){try{kvUn()}catch(e){}}kvUid=U.uid;kvUn=onSnapshot(doc(db,'config','kycv'),function(s){KYCV=(s.exists()&&s.data().u)||{};KYCV_OK=true;if(AK==='grp')gR()},function(){})}}else if(kvUn){try{kvUn()}catch(e){}kvUn=null;kvUid=null;KYCV={};KYCV_OK=false}},1500);
 </script>
 </body>
