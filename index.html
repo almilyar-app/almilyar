@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head><script>(function(){var V="1795732786";try{fetch("version.json?nc="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.v||j.v===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===j.v)return;u.searchParams.set("v",j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<head><script>(function(){var V="1795787540";try{fetch("version.json?nc="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.v||j.v===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===j.v)return;u.searchParams.set("v",j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 <meta charset="utf-8">
 <title>المليار</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -1011,7 +1011,7 @@ function gR(){var box=$('gmsgs');if(!box)return;var atB=box.dataset.init!=='1'||
   var img=m.img?'<img src="'+m.img+'" data-a="gimgv" data-v="'+m.id+'" alt="" style="display:block;max-width:100%;max-height:260px;border-radius:14px;margin:4px 0;cursor:pointer">':'',txt=m.t?'<div style="font-size:15px;line-height:1.65;white-space:pre-wrap;word-break:break-word">'+refEsc(m.t)+'</div>':'',tm='<div style="font-size:11px;opacity:.7;text-align:left;margin-top:3px">'+gT(m.ts)+'</div>';
   if(me)return sep+'<div style="display:flex;justify-content:flex-end;margin:6px 0"><div class="gbub me" style="border-radius:20px 20px 20px 6px">'+img+txt+tm+'</div></div>';
   var av=ad?'<div class="gav logo"></div>':'<div class="gav" data-u="'+refEsc(m.uid||'')+'" style="overflow:hidden">'+(AVC&&AVC[m.uid]?'<img src="'+AVC[m.uid]+'" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block">':refEsc((m.n||'؟').trim().charAt(0)))+'</div>';
-  var nm=ad?'<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:3px"><b style="color:#f0cd7a;font-size:14.5px;display:flex;align-items:center;gap:6px">'+CROWN+'إدارة المليار</b><span style="font-size:11.5px;font-weight:800;color:#2a1a11;background:linear-gradient(135deg,#f0d283,#c49a45);padding:2px 10px;border-radius:12px">مدير</span></div>':'<b style="display:block;color:#f0cd7a;font-size:14px;margin-bottom:2px">'+refEsc(m.n||'عضو')+'</b>';
+  var nm=ad?'<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:3px"><b style="color:#f0cd7a;font-size:14.5px;display:flex;align-items:center;gap:6px">'+CROWN+'إدارة المليار</b><span style="font-size:11.5px;font-weight:800;color:#2a1a11;background:linear-gradient(135deg,#f0d283,#c49a45);padding:2px 10px;border-radius:12px">مدير</span></div>':'<b style="display:flex;align-items:center;gap:5px;color:#f0cd7a;font-size:14px;margin-bottom:2px">'+refEsc(m.n||'عضو')+gVB(m.uid)+'</b>';
   return sep+'<div style="display:flex;align-items:flex-end;gap:8px;margin:6px 0">'+av+'<div class="gbub'+(ad?' ad':'')+'" style="border-radius:20px 20px 6px 20px">'+nm+img+txt+tm+'</div></div>'}).join(''):'<div style="text-align:center;color:#a8977c;padding:40px 10px">لا توجد رسائل بعد — كن أول من يكتب 👋</div>';
  if(atB){box.dataset.init='1';setTimeout(function(){window.scrollTo(0,document.body.scrollHeight)},40)}}
 function gBar(){var b=$('gbar');if(!b)return;var mute=U.doc&&U.doc.gMute;b.className='gin';
@@ -1064,6 +1064,12 @@ setInterval(async function(){if(!U.uid||!U.doc||BAN)return;var ph=U.doc.photo||'
 function avGet(uid){if(uid in AVC||AVQ[uid])return;AVQ[uid]=1;getDoc(doc(db,'avatars',uid)).then(function(d){AVC[uid]=(d.exists()&&d.data().p)||'';delete AVQ[uid];clearTimeout(avGet.t);avGet.t=setTimeout(function(){if(AK==='grp')gR()},120)}).catch(function(){AVC[uid]='';delete AVQ[uid]})}
 var _gRA=gR;gR=function(){GMS.forEach(function(m){if(!m.a&&m.uid&&m.uid!==U.uid)avGet(m.uid)});_gRA();var box=$('gmsgs');if(!box)return;
  box.querySelectorAll('.gav[data-u]').forEach(function(e){var p=AVC[e.getAttribute('data-u')];if(p&&!e.querySelector('img'))e.innerHTML='<img src="'+p+'" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block">'})};
+
+/* ===== شارة التوثيق بالكروب (أخضر = موثق، أحمر = غير موثق) ===== */
+var KYCV={},KYCV_OK=false,kvUn=null,kvUid=null;
+(function(){var st=document.createElement('style');st.textContent='.gvb{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;flex-shrink:0;font-size:11px;font-weight:900;line-height:1;color:#fff;font-family:sans-serif}.gvb.ok{background:#2fbf5b;box-shadow:0 0 6px rgba(47,191,91,.55)}.gvb.no{background:#e04848;box-shadow:0 0 6px rgba(224,72,72,.45)}';document.head.appendChild(st)})();
+function gVB(uid){if(!KYCSH||!uid||!KYCV_OK)return '';return KYCV[uid]?'<span class="gvb ok" title="موثق">✓</span>':'<span class="gvb no" title="غير موثق">✕</span>'}
+setInterval(function(){if(U.uid&&!BAN){if(kvUid!==U.uid){if(kvUn){try{kvUn()}catch(e){}}kvUid=U.uid;kvUn=onSnapshot(doc(db,'config','kycv'),function(s){KYCV=(s.exists()&&s.data().u)||{};KYCV_OK=true;if(AK==='grp')gR()},function(){})}}else if(kvUn){try{kvUn()}catch(e){}kvUn=null;kvUid=null;KYCV={};KYCV_OK=false}},1500);
 </script>
 </body>
 </html>
